@@ -1,0 +1,181 @@
+        <div data-role="page" id="LEDs">
+            <div data-role="header" data-position="fixed">
+                <h1>LEDs</h1>
+				<a href="#mainMenu" data-rel="main-menu-panel" class="ui-btn ui-btn-left ui-btn-icon-notext ui-icon-bars ui-corner-all"></a>
+            </div>
+            <div data-role="content">
+                <form action="/set_leds" method="POST" id="leds_form">
+					<fieldset id="noWiFi-colors" data-collapsed="false" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+						<legend>No WiFi</legend>
+						<div class="dispInlineLabel">
+							<label for="noWiFi-pattern">Pattern</label>
+						</div>
+						<div class="dispInline">
+							<select onchange="setVisibility('noWiFi-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="noWiFi-pattern" data-mini="true">
+								<option value="0">Constant</option>
+								<option value="1">Pulse</option>
+							</select>
+						</div>
+						<div id="noWiFi-bpm_container" style="display: none;">
+							<div class="clearFloats"></div>
+							<label for="noWiFi-pulse_per_min">Cycles per Minute</label>
+							<input onchange="elementChange(this)" type="range" name="noWiFi-pulse_per_min" id="noWiFi-pulse_per_min" min="1" max="20" value="20">
+						</div>
+						<div class="clearFloats"></div>
+						<div class="dispInlineLabel">
+							<label for="noWiFi">Color</label>
+						</div>
+						<div class="dispInline">
+							<input data-wrapper-class="spectrum" class="color_picker" maxlength="1" type='text' id="noWiFi" />
+						</div>
+					</fieldset>
+					<fieldset id="noPrinterConnected-colors" data-collapsed="false" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+						<legend>No Printer</legend>
+						<div class="dispInlineLabel">
+							<label for="noPrinterConnected-pattern">Pattern</label>
+						</div>
+						<div class="dispInline">
+							<select onchange="setVisibility('noPrinterConnected-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="noPrinterConnected-pattern" data-mini="true">
+								<option value="0">Constant</option>
+								<option value="1">Pulse</option>
+							</select>
+						</div>
+						<div id="noPrinterConnected-bpm_container" style="display: none;">
+							<div class="clearFloats"></div>
+							<label for="noPrinterConnected-pulse_per_min">Cycles per Minute</label>
+							<input onchange="elementChange(this)" type="range" name="noPrinterConnected-pulse_per_min" id="noPrinterConnected-pulse_per_min" min="1" max="20" value="20">
+						</div>
+						<div class="clearFloats"></div>
+						<div class="dispInlineLabel">
+							<label for="noPrinterConnected">Color</label>
+						</div>
+						<div class="dispInline">
+							<input data-wrapper-class="spectrum" class="color_picker" maxlength="1" type='text' id="noPrinterConnected" />
+						</div>
+					</fieldset>
+					<fieldset id="printerConnected-colors" data-collapsed="false" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+						<legend>Printer Idle</legend>
+						<div class="dispInlineLabel">
+							<label for="printerConnected-pattern">Pattern</label>
+						</div>
+						<div class="dispInline">
+							<select onchange="setVisibility('printerConnected-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="printerConnected-pattern" data-mini="true">
+								<option value="0">Constant</option>
+								<option value="1">Pulse</option>
+							</select>
+						</div>
+						<div id="printerConnected-bpm_container" style="display: none;">
+							<div class="clearFloats"></div>
+							<label for="printerConnected-pulse_per_min">Cycles per Minute</label>
+							<input onchange="elementChange(this)" type="range" name="printerConnected-pulse_per_min" id="printerConnected-pulse_per_min" min="1" max="20" value="20">
+						</div>
+						<div class="clearFloats"></div>
+						<div class="dispInlineLabel">
+							<label for="printerConnected">Color</label>
+						</div>
+						<div class="dispInline">
+							<input data-wrapper-class="spectrum" class="color_picker" maxlength="1" type='text' id="printerConnected" />
+						</div>
+					</fieldset>
+					<fieldset id="printing-colors" data-collapsed="false" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+						<legend>Printing</legend>
+						<div class="dispInlineLabel">
+							<label for="printing-pattern">Pattern</label>
+						</div>
+						<div class="dispInline">
+							<select onchange="setVisibility('printing-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="printing-pattern" data-mini="true">
+								<option value="0">Constant</option>
+								<option value="1">Pulse</option>
+							</select>
+						</div>
+						<div id="printing-bpm_container" style="display: none;">
+							<div class="clearFloats"></div>
+							<label for="printing-pulse_per_min">Cycles per Minute</label>
+							<input onchange="elementChange(this)" type="range" name="printing-pulse_per_min" id="printing-pulse_per_min" min="1" max="20" value="20">
+						</div>
+						<div class="clearFloats"></div>
+						<div class="dispInlineLabel">
+							<label for="printing">Color</label>
+						</div>
+						<div class="dispInline">
+							<input data-wrapper-class="spectrum" class="color_picker" maxlength="1" type='text' id="printing" />
+						</div>
+					</fieldset>
+					<fieldset id="finished-colors" data-collapsed="false" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+						<legend>Finished</legend>
+							<label for="finished-timeout">Timeout (mins)</label>
+							<input onchange="elementChange(this)" type="range" name="finished-timeout" id="finished-timeout" min="1" max="120" value="20">
+						<div class="clearFloats"></div>
+						<div class="dispInlineLabel">
+							<label for="finished-pattern">Pattern</label>
+						</div>
+						<div class="dispInline">
+							<select onchange="setVisibility('finished-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="finished-pattern" data-mini="true">
+								<option value="0">Constant</option>
+								<option value="1">Pulse</option>
+							</select>
+						</div>
+						<div id="finished-bpm_container" style="display: none;">
+							<div class="clearFloats"></div>
+							<label for="finished-pulse_per_min">Cycles per Minute</label>
+							<input onchange="elementChange(this)" type="range" name="finished-pulse_per_min" id="finished-pulse_per_min" min="1" max="20" value="20">
+						</div>
+						<div class="clearFloats"></div>
+						<div class="dispInlineLabel">
+							<label for="finished">Color</label>
+						</div>
+						<div class="dispInline">
+							<input data-wrapper-class="spectrum" class="color_picker" maxlength="1" type='text' id="finished" />
+						</div>
+					</fieldset>
+					<fieldset id="warning-colors" data-collapsed="false" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+						<legend>Warning</legend>
+						<div class="dispInlineLabel">
+							<label for="warning-pattern">Pattern</label>
+						</div>
+						<div class="dispInline">
+							<select onchange="setVisibility('warning-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="warning-pattern" data-mini="true">
+								<option value="0">Constant</option>
+								<option value="1">Pulse</option>
+							</select>
+						</div>
+						<div id="warning-bpm_container" style="display: none;">
+							<div class="clearFloats"></div>
+							<label for="warning-pulse_per_min">Cycles per Minute</label>
+							<input onchange="elementChange(this)" type="range" name="warning-pulse_per_min" id="warning-pulse_per_min" min="1" max="20" value="20">
+						</div>
+						<div class="clearFloats"></div>
+						<div class="dispInlineLabel">
+							<label for="warning">Color</label>
+						</div>
+						<div class="dispInline">
+							<input data-wrapper-class="spectrum" class="color_picker" maxlength="1" type='text' id="warning" />
+						</div>
+					</fieldset>
+					<fieldset id="error-colors" data-collapsed="false" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+						<legend>Error</legend>
+						<div class="dispInlineLabel">
+							<label for="error-pattern">Pattern</label>
+						</div>
+						<div class="dispInline">
+							<select onchange="setVisibility('error-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="error-pattern" data-mini="true">
+								<option value="0">Constant</option>
+								<option value="1">Pulse</option>
+							</select>
+						</div>
+						<div id="error-bpm_container" style="display: none;">
+							<div class="clearFloats"></div>
+							<label for="error-pulse_per_min">Cycles per Minute</label>
+							<input onchange="elementChange(this)" type="range" name="error-pulse_per_min" id="error-pulse_per_min" min="1" max="20" value="20">
+						</div>
+						<div class="clearFloats"></div>
+						<div class="dispInlineLabel">
+							<label for="error">Color</label>
+						</div>
+						<div class="dispInline">
+							<input data-wrapper-class="spectrum" class="color_picker" maxlength="1" type='text' id="error" />
+						</div>
+					</fieldset>
+			   </form>
+    		</div>
+        </div>

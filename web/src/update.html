@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8"/>
+	<title>Nixie6 - Update</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<!-- build:js script.js -->
+	<script src="/jquery/jquery-1.11.1.min.js"></script>
+<script>
+$(document).on("mobileinit", function () {
+	$.mobile.hashListeningEnabled = false;
+    $.mobile.pushStateEnabled = false;
+    $.mobile.changePage.defaults.changeHash = false;
+});
+</script>
+	<script src="/jquery/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<script src="/jquery/jquery.roundslider/1.3/roundslider.min.js"></script>
+    <!-- endbuild -->
+
+	<!-- build:css script.css -->
+	<link rel="stylesheet" href="/jquery/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+	<link href="/jquery/jquery.roundslider/1.3/roundslider.min.css" rel="stylesheet" />
+	<!-- endbuild -->
+
+	<link rel="shortcut icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABFFBMVEUAAACSkpIxMTEKCgo/Pz9YWFgMDAwMDAwPDw8gICAqKipqamqSkpJ1dXUICAgGBgYQEBAEBAQNDQ0LCwsPDw8REREKCgoODg4TExMPDw8PDw8TExMdHR0SEhIVFRUiIiISEhISEhI5OTlHR0cXFxcbGxsXFxcbGxsbGxs2NjYfHx8pKSkwMDAzMzNKSkouLi5NTU1ZWVkqKipdXV1OTk5BQUEREREHBwcJCQkLCwscHBwVFRUrKyshISE4ODgUFBQgICAWFhYbGxsbGxsSEhIlJSUqKipNTU0WFhZbW1tSUlIiIiIbGxs7Ozs9PT1bW1sfHx8yMjJvb282NjZRUVEmJiZWVlZCQkJnZ2fw8PAAAAAKCgo+WiZ7AAAAWnRSTlMABDHtGgno2sdeQSEJBvn59vbx5OPa1MG/vrGuq6qmnZeQi4F9e3FuaGBaTko9OicjIB8ZEg3p59vLyb27t6mfl5GLhXZ0cGxqZmZkWFZQTko2LCooKBwUEATs1IN1AAAA/0lEQVQ4y4WQRXIDQRAEexakRTFLFjOjmZkZy///hxXhmzXTzksdMk9Ff5jMXFIiXNfr1B7o/VVIdV0HAlZvOwvsyIJi2nYO8UvIW/VaStBj/qKWgx75znytBk6FzvbM6vA4ON6MkAS/JO53x9XurVkGNFlhdO7E0CC6tBCekpp5cgDdZgL7JheaHZwIZVBqIE6kFfaf5b6fDCK2XG9Ccq6uY9CJJYCt/4IK6z+BJzZoI8v6j43oiPNmOtrj/NRKaYwWzUTTZ/woU18Qw1veIJbCnPeLRHnABkUAa6bavwBYFuqgAawDUL9wBLRbcZwqgxaCPonuuTIwwg7x9EnOD7yqJHNnrSJeAAAAAElFTkSuQmCC" />
+</head>
+   <body>
+		<form method='POST' action='/update' enctype='multipart/form-data' data-ajax="false">
+			<input type="file" name="update" id="file" value="">
+			<input type='submit' data-mini="true" value='Update'>
+		</form>
+	</body>
+</html>
