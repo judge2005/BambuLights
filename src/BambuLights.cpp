@@ -1,7 +1,6 @@
 #include "BambuLights.h"
 #include <math.h>
 
-
 CompositeConfigItem& BambuLights::getNoWiFiConfig() {
     static ByteConfigItem pattern("pattern", pulse);
     static IntConfigItem  hue("hue", 203);
@@ -168,8 +167,8 @@ CompositeConfigItem& BambuLights::getAllConfig() {
     return config;
 };
 
-BambuLights::BambuLights(int numPixels, int pin) : pixels(numPixels, pin), currentState(noPrinter) {
-    setState(noWiFi);
+BambuLights::BambuLights(int numPixels, int pin) : pixels(numPixels, pin), currentState(noWiFi) {
+    setCurrentConfig(getNoWiFiConfig());
 }
 
 void BambuLights::setState(State state) {
@@ -177,7 +176,9 @@ void BambuLights::setState(State state) {
     currentState = state;
 
 // noWiFi, noPrinter, printer, printing, no_lights, warning, error, finished
+    bool oldOff = off;
     off = false;
+    CHSV oldColor = {*currentHue, *currentSaturation, *currentValue};
     switch (state) {
       case noPrinter:
         setCurrentConfig(getNoPrinterConnectedConfig());
@@ -204,10 +205,24 @@ void BambuLights::setState(State state) {
         setCurrentConfig(getNoWiFiConfig());
         break;
     }
+    CHSV newColor = {*currentHue, *currentSaturation, *currentValue};
+    if (oldOff != off) {
+      if (off) {
+        newColor.h = oldColor.h;
+        newColor.s = oldColor.s;
+        newColor.v = 0;
+      } else {
+        oldColor.h = newColor.h;
+        oldColor.s = newColor.s;
+        oldColor.v = 0;;
+      }
+    }
+    crossFade(oldColor, newColor);
   }
 }
 
 void BambuLights::setCurrentConfig(CompositeConfigItem& config) {
+  currentConfig = &config;
   currentPattern = (ByteConfigItem*)config.get("pattern");
   currentHue = (IntConfigItem*)config.get("hue");
   currentValue = (ByteConfigItem*)config.get("value");
@@ -241,12 +256,24 @@ void BambuLights::loop() {
   }
 }
 
+void BambuLights::crossFade(const CHSV& oldColor, const CHSV& newColor) {
+  for (int i=0; i < 255; i++) {
+    CHSV blendedColor = ::blend(oldColor, newColor, i , SHORTEST_HUES);
+    fill(blendedColor.h, blendedColor.s, blendedColor.v);
+    show();
+    delay(3); // So we will take approximately 0.75s to do the whole blend
+  }
+}
+
+static byte valueMin = 20;
+
 void BambuLights::pulsePattern() {
   // https://sean.voisen.org/blog/2011/10/breathing-led-with-arduino/
+  float delta = (currentValue->value - valueMin) / 2.35040238;
+
   float pulse_length_millis = (60.0f * 1000) / currentPulsePerMin->value;
-  float val = (exp(sin(2 * M_PI * millis() / pulse_length_millis)) - 0.36787944f) * 108.0f;
+  float val = valueMin + (exp(sin(2 * M_PI * millis() / pulse_length_millis)) - 0.36787944f) * delta;
   val = val * currentValue->value / 256;
-  val = map(val, 0, 255, 20, 255);
   val = val * brightness / 255;
 
   fill(*currentHue, *currentSaturation, val);
@@ -258,7 +285,7 @@ void BambuLights::fill(uint8_t hue, uint8_t sat, uint8_t val) {
   RgbColor color = HsbColor((byte)(hue)/256.0, (byte)(sat)/256.0, val/256.0);
 
   for (uint8_t digit=0; digit < pixels.PixelCount(); digit++) {
-	pixels.SetPixelColor(digit, colorGamma.Correct(color));
+	  pixels.SetPixelColor(digit, colorGamma.Correct(color));
   }
 }
 

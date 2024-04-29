@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <ConfigItem.h>
 #include <NeoPixelBus.h>
+#include <FastLED.h>
 
 class BambuLights {
 public:
@@ -35,13 +36,14 @@ public:
   void setBrightness(byte brightness) { this->brightness = brightness; }
 
 private:
-  bool off;
+  bool off = false;
   byte brightness = 255;
   
   NeoPixelBus <NeoGrbFeature, Neo800KbpsMethod> pixels;
   NeoGamma<NeoGammaTableMethod> colorGamma;
 
   State currentState;
+  CompositeConfigItem *currentConfig;
   ByteConfigItem *currentPattern;
   IntConfigItem *currentHue;
   ByteConfigItem *currentValue;
@@ -57,6 +59,7 @@ private:
   void show();
   void clear();
   void setPixelColor(uint8_t digit, uint8_t hue, uint8_t val, uint8_t sat);
+  void crossFade(const CHSV& oldColor, const CHSV& newColor);
 };
 
 #endif // BAMBULIGHTS_H

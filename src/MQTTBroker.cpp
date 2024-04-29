@@ -270,7 +270,7 @@ void MQTTBroker::handleMQTTMessage(JsonDocument &jsonMsg) {
         }
     }
 
-    Serial.print("state=");Serial.println(state);
+    Serial.print("printer state=");Serial.println(state);
 }
 
 void MQTTBroker::onCompleteMessage(const espMqttClientTypes::MessageProperties& properties, const char* topic, const uint8_t* payload, size_t length) {
