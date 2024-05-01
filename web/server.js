@@ -78,6 +78,7 @@ var state = {
 		'mqtt_serialnumber' : "abcdefg"
 	},
 	"2": {
+		'light_mode' : 2,
 		'noWiFi-pattern': 1,
 		'noWiFi-pulse_per_min': 7,
 		'noWiFi-hue': 213,

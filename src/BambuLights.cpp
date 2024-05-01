@@ -1,6 +1,8 @@
 #include "BambuLights.h"
 #include <math.h>
 
+//#define DEBUG_COLORS
+
 CompositeConfigItem& BambuLights::getNoWiFiConfig() {
     static ByteConfigItem pattern("pattern", pulse);
     static IntConfigItem  hue("hue", 203);
@@ -175,10 +177,13 @@ void BambuLights::setState(State state) {
   if (currentState != state) {
     currentState = state;
 
-// noWiFi, noPrinter, printer, printing, no_lights, warning, error, finished
-    bool oldOff = off;
-    off = false;
+// noWiFi, noPrinter, printer, printing, no_lights, white, warning, error, finished
+    bool oldBlack = black;
+    bool oldWhite = brightWhite;
+    black = false;
+    brightWhite = false;
     CHSV oldColor = {*currentHue, *currentSaturation, *currentValue};
+    // Serial.print("state set to ");Serial.println(state);
     switch (state) {
       case noPrinter:
         setCurrentConfig(getNoPrinterConnectedConfig());
@@ -190,7 +195,10 @@ void BambuLights::setState(State state) {
         setCurrentConfig(getPrintingConfig());
         break;
       case no_lights:
-        off = true;
+        black = true;
+        break;
+      case white:
+        brightWhite = true;
         break;
       case warning:
         setCurrentConfig(getWarningConfig());
@@ -206,15 +214,30 @@ void BambuLights::setState(State state) {
         break;
     }
     CHSV newColor = {*currentHue, *currentSaturation, *currentValue};
-    if (oldOff != off) {
-      if (off) {
+    if (oldBlack != black) {
+      if (black) {
+        // Fade from old color to old color at zero brightness
         newColor.h = oldColor.h;
         newColor.s = oldColor.s;
         newColor.v = 0;
       } else {
+        // Fade from new color at zero brightness to new color
         oldColor.h = newColor.h;
         oldColor.s = newColor.s;
-        oldColor.v = 0;;
+        oldColor.v = 0;
+      }
+    }
+    if (oldWhite != brightWhite) {
+      if (brightWhite) {
+        // Fade from old color to old color at zero saturation (aka white) and full brightness
+        newColor.h = oldColor.h;
+        newColor.s = 0;
+        newColor.v = 255;
+      } else {
+        // Fade from new color at zero saturation (aka white) and full brightness to new color
+        oldColor.h = newColor.h;
+        oldColor.s = 0;
+        oldColor.v = 255;
       }
     }
     crossFade(oldColor, newColor);
@@ -239,33 +262,50 @@ void BambuLights::loop() {
   //   enum patterns { dark, constant, rainbow, pulse, breath, num_patterns };
   uint8_t current_pattern = *currentPattern;
 
-  if (off ) {
+  if (black) {
     clear();
     show();
-  }
-  else if (current_pattern == constant) {
+  } else if (brightWhite) {
+    fill(255, 0, 255);
+    show();
+  } else if (current_pattern == constant) {
     uint16_t val = *currentValue;
 
     val = val * brightness / 255;
     
     fill(*currentHue, *currentSaturation, val);
     show();
-  }
-  else if (current_pattern == pulse) {
+  } else if (current_pattern == pulse) {
     pulsePattern();
   }
 }
 
+#ifdef DEBUG_COLORS
+void printCHSV(const CHSV& color) {
+  Serial.print("{h=");Serial.print(color.h);
+  Serial.print(",s=");Serial.print(color.s);
+  Serial.print(",v=");Serial.print(color.v);
+  Serial.print("}");
+}
+#endif
+
 void BambuLights::crossFade(const CHSV& oldColor, const CHSV& newColor) {
+#ifdef DEBUG_COLORS
+  Serial.print("Blending from ");printCHSV(oldColor);Serial.print(" to ");printCHSV(newColor);Serial.println("");
+#endif
   for (int i=0; i < 255; i++) {
-    CHSV blendedColor = ::blend(oldColor, newColor, i , SHORTEST_HUES);
+    CHSV blendedColor = ::blend(blendedColor, newColor, i , SHORTEST_HUES);
     fill(blendedColor.h, blendedColor.s, blendedColor.v);
     show();
     delay(3); // So we will take approximately 0.75s to do the whole blend
   }
+
+#ifdef DEBUG_COLORS
+  Serial.print("Final color ");printCHSV(blendedColor);Serial.println("");
+#endif
 }
 
-static byte valueMin = 20;
+static byte valueMin = 5;
 
 void BambuLights::pulsePattern() {
   // https://sean.voisen.org/blog/2011/10/breathing-led-with-arduino/
@@ -282,10 +322,27 @@ void BambuLights::pulsePattern() {
 }
 
 void BambuLights::fill(uint8_t hue, uint8_t sat, uint8_t val) {
-  RgbColor color = HsbColor((byte)(hue)/256.0, (byte)(sat)/256.0, val/256.0);
+  static int oldHue = -1;
+  static int oldSat = -1;
+  static int oldVal = -1;
 
-  for (uint8_t digit=0; digit < pixels.PixelCount(); digit++) {
-	  pixels.SetPixelColor(digit, colorGamma.Correct(color));
+  if (hue != oldHue || sat != oldSat || val != oldVal) {
+    oldHue = hue;
+    oldSat = sat;
+    oldVal = val;
+#ifdef DEBUG_COLORS
+    Serial.print("Filling with ");
+    Serial.print("{h=");Serial.print(hue);
+    Serial.print(",s=");Serial.print(sat);
+    Serial.print(",v=");Serial.print(val);
+    Serial.print("}");
+    Serial.println("");
+#endif
+    RgbColor color = HsbColor((byte)(hue)/256.0, (byte)(sat)/256.0, val/256.0);
+    // color = colorGamma.Correct(color);
+    for (uint8_t digit=0; digit < pixels.PixelCount(); digit++) {
+      pixels.SetPixelColor(digit, color);
+    }
   }
 }
 

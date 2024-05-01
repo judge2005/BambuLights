@@ -68,6 +68,7 @@ CompositeConfigItem mqttConfig("mqtt", 0, mqttConfigSet);
 BaseConfigItem* rootConfigSet[] = {
   &mqttConfig,
   &BambuLights::getAllConfig(),
+  &BambuLights::getLightMode(),
   0
 };
 
@@ -139,6 +140,7 @@ void ledTaskFn(void *pArg) {
 		BambuLights::State lightsState = BambuLights::noWiFi;
 
 		if (WiFi.isConnected()) {		
+			// Run the state machine
 			switch (mqttBroker.getState()) {
 				case MQTTBroker::disconnected:
 					lightsState = BambuLights::noPrinter;
@@ -170,9 +172,15 @@ void ledTaskFn(void *pArg) {
 					lightsState = BambuLights::error;
 					break;
 			}
-		}
+			prevLightsState = lightsState;
 
-		prevLightsState = lightsState;
+			// Override the results if told to
+			if (BambuLights::getLightMode() == 0) {
+				lightsState = BambuLights::white;
+			} else if (BambuLights::getLightMode() == 1) {
+				lightsState = BambuLights::no_lights;
+			}
+		}
 
 		bambuLights.setState(lightsState);
 
@@ -214,9 +222,20 @@ String* items[] {
 	0
 };
 
+String ledConfigCallback() {
+	String json;
+	json.reserve(20);
+	json.concat("\"");
+	json.concat(BambuLights::getLightMode().name);
+	json.concat("\":");
+	json.concat(BambuLights::getLightMode().toJSON());
+
+	return json;
+}
+
 WSMenuHandler wsMenuHandler(items);
 WSConfigHandler wsMqttHandler(rootConfig, "mqtt");
-WSLEDConfigHandler wsLEDHandler(rootConfig, "leds");
+WSLEDConfigHandler wsLEDHandler(rootConfig, "leds", ledConfigCallback);
 WSInfoHandler wsInfoHandler(infoCallback);
 
 // Order of this needs to match the numbers in WSMenuHandler.cpp

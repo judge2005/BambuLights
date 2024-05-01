@@ -5,7 +5,21 @@
             </div>
             <div data-role="content">
                 <form action="/set_leds" method="POST" id="leds_form">
-					<fieldset id="noWiFi-colors" data-collapsed="false" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+					<div class="dispInlineLabel">
+						<label for="display_type">Light Mode</label>
+					</div>
+					<div class="dispInline">
+						<fieldset data-role="controlgroup" data-type="horizontal" data-mini="true" id="display_type">
+						<input onchange="elementChange(this);" type="radio" name="light_mode" id="lights_always_on" value="0">
+						<label for="lights_always_on">On</label>
+						<input onchange="elementChange(this);" type="radio" name="light_mode" id="lights_always_off" value="1">
+						<label for="lights_always_off">Off</label>
+						<input onchange="elementChange(this);" type="radio" name="light_mode" id="lights_reactive" value="2">
+						<label for="lights_reactive">Reactive</label>
+						</fieldset>
+					</div>
+					<div class="clearFloats"><h3>Reactive Settings</h3></div>
+					<fieldset id="noWiFi-colors" data-collapsed="true" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
 						<legend>No WiFi</legend>
 						<div class="dispInlineLabel">
 							<label for="noWiFi-pattern">Pattern</label>
@@ -29,7 +43,7 @@
 							<input data-wrapper-class="spectrum" class="color_picker" maxlength="1" type='text' id="noWiFi" />
 						</div>
 					</fieldset>
-					<fieldset id="noPrinterConnected-colors" data-collapsed="false" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+					<fieldset id="noPrinterConnected-colors" data-collapsed="true" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
 						<legend>No Printer</legend>
 						<div class="dispInlineLabel">
 							<label for="noPrinterConnected-pattern">Pattern</label>
@@ -53,7 +67,7 @@
 							<input data-wrapper-class="spectrum" class="color_picker" maxlength="1" type='text' id="noPrinterConnected" />
 						</div>
 					</fieldset>
-					<fieldset id="printerConnected-colors" data-collapsed="false" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+					<fieldset id="printerConnected-colors" data-collapsed="true" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
 						<legend>Printer Idle</legend>
 						<div class="dispInlineLabel">
 							<label for="printerConnected-pattern">Pattern</label>
@@ -77,7 +91,7 @@
 							<input data-wrapper-class="spectrum" class="color_picker" maxlength="1" type='text' id="printerConnected" />
 						</div>
 					</fieldset>
-					<fieldset id="printing-colors" data-collapsed="false" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+					<fieldset id="printing-colors" data-collapsed="true" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
 						<legend>Printing</legend>
 						<div class="dispInlineLabel">
 							<label for="printing-pattern">Pattern</label>
@@ -101,7 +115,7 @@
 							<input data-wrapper-class="spectrum" class="color_picker" maxlength="1" type='text' id="printing" />
 						</div>
 					</fieldset>
-					<fieldset id="finished-colors" data-collapsed="false" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+					<fieldset id="finished-colors" data-collapsed="true" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
 						<legend>Finished</legend>
 							<label for="finished-timeout">Timeout (mins)</label>
 							<input onchange="elementChange(this)" type="range" name="finished-timeout" id="finished-timeout" min="1" max="120" value="20">
@@ -128,7 +142,7 @@
 							<input data-wrapper-class="spectrum" class="color_picker" maxlength="1" type='text' id="finished" />
 						</div>
 					</fieldset>
-					<fieldset id="warning-colors" data-collapsed="false" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+					<fieldset id="warning-colors" data-collapsed="true" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
 						<legend>Warning</legend>
 						<div class="dispInlineLabel">
 							<label for="warning-pattern">Pattern</label>
@@ -152,7 +166,7 @@
 							<input data-wrapper-class="spectrum" class="color_picker" maxlength="1" type='text' id="warning" />
 						</div>
 					</fieldset>
-					<fieldset id="error-colors" data-collapsed="false" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+					<fieldset id="error-colors" data-collapsed="true" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
 						<legend>Error</legend>
 						<div class="dispInlineLabel">
 							<label for="error-pattern">Pattern</label>
