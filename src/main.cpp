@@ -261,7 +261,7 @@ void infoCallback() {
 	wsInfoHandler.setHostname(hostName);
 }
 
-void broadcastUpdate(const BaseConfigItem& item) {
+void broadcastUpdate(String originalKey, const BaseConfigItem& item) {
 	xSemaphoreTake(wsMutex, portMAX_DELAY);
 
 	JsonDocument doc;
@@ -271,19 +271,19 @@ void broadcastUpdate(const BaseConfigItem& item) {
 
 	JsonVariant value = root.createNestedObject("value");
 	String rawJSON = item.toJSON();	// This object needs to hang around until we are done serializing.
-	value[item.name] = serialized(rawJSON.c_str());
+	value[originalKey] = serialized(rawJSON.c_str());
 
-  size_t len = measureJson(root);
-  AsyncWebSocketMessageBuffer * buffer = ws.makeBuffer(len); //  creates a buffer (len + 1) for you.
-  if (buffer) {
-    serializeJson(root, (char *)buffer->get(), len + 1);
-    ws.textAll(buffer);
-  }
+	size_t len = measureJson(root);
+	AsyncWebSocketMessageBuffer * buffer = ws.makeBuffer(len); //  creates a buffer (len + 1) for you.
+	if (buffer) {
+		serializeJson(root, (char *)buffer->get(), len + 1);
+		ws.textAll(buffer);
+	}
 
 	xSemaphoreGive(wsMutex);
 }
 
-void updateValue(String _key, String value, BaseConfigItem *item) {
+void updateValue(String originalKey, String _key, String value, BaseConfigItem *item) {
 	int index = _key.indexOf('-');
 	if (index == -1) {
 		const char* key = _key.c_str();
@@ -293,7 +293,7 @@ void updateValue(String _key, String value, BaseConfigItem *item) {
 			item->put();
 
 			// Order of below is important to maintain external consistency
-			broadcastUpdate(*item);
+			broadcastUpdate(originalKey, *item);
 			item->notify();
 		} else if (_key == "wifi_ap") {
 			setWiFiAP(value == "true" ? true : false);
@@ -306,7 +306,7 @@ void updateValue(String _key, String value, BaseConfigItem *item) {
 	} else {
 		String firstKey = _key.substring(0, index);
 		String nextKey = _key.substring(index+1);
-		updateValue(nextKey, value, item->get(firstKey.c_str()));
+		updateValue(originalKey, nextKey, value, item->get(firstKey.c_str()));
 	}
 }
 
@@ -317,7 +317,7 @@ void updateValue(int screen, String pair) {
 	String _key = pair.substring(0, index);
 	String value = pair.substring(index+1);
 
-	updateValue(_key, value, &rootConfig);
+	updateValue(_key, _key, value, &rootConfig);
 }
 
 /*
