@@ -2,6 +2,7 @@
 #include <math.h>
 
 //#define DEBUG_COLORS
+//#define DEBUG_FADE
 
 CompositeConfigItem& BambuLights::getNoWiFiConfig() {
     static ByteConfigItem pattern("pattern", pulse);
@@ -180,9 +181,13 @@ void BambuLights::setState(State state) {
 // noWiFi, noPrinter, printer, printing, no_lights, white, warning, error, finished
     bool oldBlack = black;
     bool oldWhite = brightWhite;
+    byte oldPattern = *currentPattern;
     black = false;
     brightWhite = false;
     CHSV oldColor = {*currentHue, *currentSaturation, *currentValue};
+    if (oldPattern == pulse) {
+      oldColor.v = getPulseBrightness();
+    }
     // Serial.print("state set to ");Serial.println(state);
     switch (state) {
       case noPrinter:
@@ -213,6 +218,7 @@ void BambuLights::setState(State state) {
         setCurrentConfig(getNoWiFiConfig());
         break;
     }
+
     CHSV newColor = {*currentHue, *currentSaturation, *currentValue};
     if (oldBlack != black) {
       if (black) {
@@ -240,7 +246,12 @@ void BambuLights::setState(State state) {
         oldColor.v = 255;
       }
     }
+
     crossFade(oldColor, newColor);
+
+    if (*currentPattern == pulse) {
+      pulseOffset = millis(); // Always start at brightest level
+    }
   }
 }
 
@@ -264,23 +275,25 @@ void BambuLights::loop() {
 
   if (black) {
     clear();
-    show();
   } else if (brightWhite) {
     fill(255, 0, 255);
-    show();
-  } else if (current_pattern == constant) {
-    uint16_t val = *currentValue;
-
-    val = val * brightness / 255;
-    
+  } else {
+    uint16_t val;
+    switch (current_pattern) {
+      case pulse:
+        val = getPulseBrightness();
+        break;
+      default:
+        val = *currentValue;
+        val = val * brightness / 255;
+        break;
+    }
     fill(*currentHue, *currentSaturation, val);
-    show();
-  } else if (current_pattern == pulse) {
-    pulsePattern();
   }
+  show();
 }
 
-#ifdef DEBUG_COLORS
+#ifdef DEBUG_FADE
 void printCHSV(const CHSV& color) {
   Serial.print("{h=");Serial.print(color.h);
   Serial.print(",s=");Serial.print(color.s);
@@ -290,35 +303,36 @@ void printCHSV(const CHSV& color) {
 #endif
 
 void BambuLights::crossFade(const CHSV& oldColor, const CHSV& newColor) {
-#ifdef DEBUG_COLORS
+#ifdef DEBUG_FADE
   Serial.print("Blending from ");printCHSV(oldColor);Serial.print(" to ");printCHSV(newColor);Serial.println("");
 #endif
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+  const TickType_t xFrequency = 3 / portTICK_PERIOD_MS; // So we will take approximately 0.75s to do the whole blend
+
+  CHSV blendedColor;
   for (int i=0; i < 255; i++) {
-    CHSV blendedColor = ::blend(blendedColor, newColor, i , SHORTEST_HUES);
+    blendedColor = ::blend(oldColor, newColor, i, SHORTEST_HUES);
+#ifdef DEBUG_FADE
+    Serial.print("Blended color ");printCHSV(blendedColor);Serial.println("");
+#endif
     fill(blendedColor.h, blendedColor.s, blendedColor.v);
     show();
-    delay(3); // So we will take approximately 0.75s to do the whole blend
+    vTaskDelayUntil(&xLastWakeTime, xFrequency);
   }
-
-#ifdef DEBUG_COLORS
-  Serial.print("Final color ");printCHSV(blendedColor);Serial.println("");
-#endif
 }
 
 static byte valueMin = 5;
 
-void BambuLights::pulsePattern() {
+byte BambuLights::getPulseBrightness() {
   // https://sean.voisen.org/blog/2011/10/breathing-led-with-arduino/
-  float delta = (currentValue->value - valueMin) / 2.35040238;
+  float delta = (currentValue->value - valueMin) / 2.35040238;  // 2.35040238 = e - 0.36787944
 
   float pulse_length_millis = (60.0f * 1000) / currentPulsePerMin->value;
-  float val = valueMin + (exp(sin(2 * M_PI * millis() / pulse_length_millis)) - 0.36787944f) * delta;
+  float val = valueMin + (exp(cos(2 * M_PI * (millis() - pulseOffset) / pulse_length_millis)) - 0.36787944f) * delta;
   val = val * currentValue->value / 256;
   val = val * brightness / 255;
 
-  fill(*currentHue, *currentSaturation, val);
-
-  show();
+  return val;
 }
 
 void BambuLights::fill(uint8_t hue, uint8_t sat, uint8_t val) {

@@ -47,11 +47,12 @@ private:
   ByteConfigItem *currentValue;
   ByteConfigItem *currentSaturation;
   ByteConfigItem *currentPulsePerMin;
+  long pulseOffset = 0;
 
   void setCurrentConfig(CompositeConfigItem& config);
 
   // Pattern methods
-  void pulsePattern();
+  byte getPulseBrightness();
 
   void fill(uint8_t hue, uint8_t val, uint8_t sat);
   void show();
