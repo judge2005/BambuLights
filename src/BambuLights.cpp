@@ -5,6 +5,7 @@
 //#define DEBUG_FADE
 
 CompositeConfigItem& BambuLights::getNoWiFiConfig() {
+    static BooleanConfigItem colors("colors", true);  // Collapsed
     static ByteConfigItem pattern("pattern", pulse);
     static IntConfigItem  hue("hue", 203);
     static ByteConfigItem value("value", 255);
@@ -12,7 +13,7 @@ CompositeConfigItem& BambuLights::getNoWiFiConfig() {
     static ByteConfigItem pulse_per_min("pulse_per_min", 10);
 
     static BaseConfigItem* configSet[] {
-        // Clock
+        &colors,
         &pattern,
         &hue,
         &value,
@@ -27,6 +28,7 @@ CompositeConfigItem& BambuLights::getNoWiFiConfig() {
 }
 
 CompositeConfigItem& BambuLights::getNoPrinterConnectedConfig() {
+    static BooleanConfigItem colors("colors", true);  // Collapsed
     static ByteConfigItem pattern("pattern", constant);
     static IntConfigItem  hue("hue", 203);
     static ByteConfigItem value("value", 255);
@@ -34,6 +36,7 @@ CompositeConfigItem& BambuLights::getNoPrinterConnectedConfig() {
     static ByteConfigItem pulse_per_min("pulse_per_min", 7);
 
     static BaseConfigItem* configSet[] {
+        &colors,
         &pattern,
         &hue,
         &value,
@@ -48,6 +51,7 @@ CompositeConfigItem& BambuLights::getNoPrinterConnectedConfig() {
 }
 
 CompositeConfigItem& BambuLights::getPrinterConnectedConfig() {
+    static BooleanConfigItem colors("colors", true);  // Collapsed
     static ByteConfigItem pattern("pattern", constant);
     static IntConfigItem  hue("hue", 0);
     static ByteConfigItem value("value", 128);
@@ -55,6 +59,7 @@ CompositeConfigItem& BambuLights::getPrinterConnectedConfig() {
     static ByteConfigItem pulse_per_min("pulse_per_min", 7);
 
     static BaseConfigItem* configSet[] {
+        &colors,
         &pattern,
         &hue,
         &value,
@@ -69,6 +74,7 @@ CompositeConfigItem& BambuLights::getPrinterConnectedConfig() {
 }
 
 CompositeConfigItem& BambuLights::getPrintingConfig() {
+    static BooleanConfigItem colors("colors", true);  // Collapsed
     static ByteConfigItem pattern("pattern", constant);
     static IntConfigItem  hue("hue", 0);
     static ByteConfigItem value("value", 255);
@@ -76,6 +82,7 @@ CompositeConfigItem& BambuLights::getPrintingConfig() {
     static ByteConfigItem pulse_per_min("pulse_per_min", 7);
 
     static BaseConfigItem* configSet[] {
+        &colors,
         &pattern,
         &hue,
         &value,
@@ -90,6 +97,7 @@ CompositeConfigItem& BambuLights::getPrintingConfig() {
 }
 
 CompositeConfigItem& BambuLights::getErrorConfig() {
+    static BooleanConfigItem colors("colors", true);  // Collapsed
     static ByteConfigItem pattern("pattern", pulse);
     static IntConfigItem  hue("hue", 0);
     static ByteConfigItem value("value", 255);
@@ -97,6 +105,7 @@ CompositeConfigItem& BambuLights::getErrorConfig() {
     static ByteConfigItem pulse_per_min("pulse_per_min", 7);
 
     static BaseConfigItem* configSet[] {
+        &colors,
         &pattern,
         &hue,
         &value,
@@ -111,6 +120,7 @@ CompositeConfigItem& BambuLights::getErrorConfig() {
 }
 
 CompositeConfigItem& BambuLights::getWarningConfig() {
+    static BooleanConfigItem colors("colors", true);  // Collapsed
     static ByteConfigItem pattern("pattern", constant);
     static IntConfigItem  hue("hue", 171);
     static ByteConfigItem value("value", 255);
@@ -118,6 +128,7 @@ CompositeConfigItem& BambuLights::getWarningConfig() {
     static ByteConfigItem pulse_per_min("pulse_per_min", 7);
 
     static BaseConfigItem* configSet[] {
+        &colors,
         &pattern,
         &hue,
         &value,
@@ -132,6 +143,7 @@ CompositeConfigItem& BambuLights::getWarningConfig() {
 }
 
 CompositeConfigItem& BambuLights::getFinishedConfig() {
+    static BooleanConfigItem colors("colors", true);  // Collapsed
     static ByteConfigItem pattern("pattern", constant);
     static IntConfigItem  hue("hue", 63);
     static ByteConfigItem value("value", 255);
@@ -139,6 +151,7 @@ CompositeConfigItem& BambuLights::getFinishedConfig() {
     static ByteConfigItem pulse_per_min("pulse_per_min", 7);
 
     static BaseConfigItem* configSet[] {
+        &colors,
         &pattern,
         &hue,
         &value,

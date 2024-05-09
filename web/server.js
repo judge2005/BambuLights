@@ -79,6 +79,7 @@ var state = {
 	},
 	"2": {
 		'light_mode' : 2,
+		'noWiFi-colors' : false,
 		'noWiFi-pattern': 1,
 		'noWiFi-pulse_per_min': 7,
 		'noWiFi-hue': 213,
