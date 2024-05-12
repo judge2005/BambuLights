@@ -42,7 +42,7 @@ AsyncWiFiManager wifiManager(&server, &dns);
 ASyncOTAWebUpdate otaUpdater(Update, "update", "secretsauce");
 AsyncWiFiManagerParameter *hostnameParam;
 MQTTBroker mqttBroker;
-BambuLights bambuLights(24, 27);
+BambuLights bambuLights(36, 27);
 
 SemaphoreHandle_t wsMutex;
 
