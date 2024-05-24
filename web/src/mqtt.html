@@ -8,7 +8,6 @@
 	<div data-role="content">
 		<form action="/set_mqtt" method="POST" id="mqtt_form">
 			<div data-role="fieldcontain">
-				<div class="clearFloats"></div>
 				<div class="dispInlineLabel">
 					<label for="mqtt_host">Printer IP Address</label>
 				</div>				
@@ -54,6 +53,14 @@
 					<input maxlength="25"
 						onblur="elementBlur(this)" type="text" id="mqtt_serialnumber"
 						data-mini="true" />
+				</div>
+			</div>
+			<div data-role="fieldcontain">
+				<div class="dispInline">
+					<label for="hostname">Controller Hostname</label>
+				</div>
+				<div class="dispInline">
+					<input maxlength="63" onblur="elementBlur(this)" type="text" id="hostname" data-mini="true" />
 				</div>
 			</div>
 		</form>

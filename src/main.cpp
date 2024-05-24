@@ -28,7 +28,7 @@ const char *manifest[]{
     // Firmware name
     "Bambu Lighting",
     // Firmware version
-    "0.0.1",
+    "0.1.0",
     // Hardware chip/variant
     "ESP32",
     // Device name
@@ -55,6 +55,7 @@ TaskHandle_t mqttBrokerTask;
 String ssid = "BambuLights";
 
 BaseConfigItem* mqttConfigSet[] = {
+  &hostName,
   &MQTTBroker::getHost(),
   &MQTTBroker::getUser(),
   &MQTTBroker::getPassword(),
@@ -124,6 +125,12 @@ void improvTaskFn(void *pArg)
 template<class T>
 void onMqttParamsChanged(ConfigItem<T> &item) {
 	mqttBroker.init(ssid);
+}
+
+template<class T>
+void onHostnameChanged(ConfigItem<T> &item) {
+	config.commit();
+	ESP.restart();
 }
 
 void ledTaskFn(void *pArg) {
@@ -297,11 +304,6 @@ void updateValue(String originalKey, String _key, String value, BaseConfigItem *
 			item->notify();
 		} else if (_key == "wifi_ap") {
 			setWiFiAP(value == "true" ? true : false);
-		} else if (_key == "hostname") {
-			hostName = value;
-			hostName.put();
-			config.commit();
-			ESP.restart();
 		}
 	} else {
 		String firstKey = _key.substring(0, index);
@@ -553,6 +555,7 @@ void setup()
     &wifiManagerTask,     /* Task handle. */
     0);
 
+	hostName.setCallback(onHostnameChanged);
 	MQTTBroker::getHost().setCallback(onMqttParamsChanged);
 	MQTTBroker::getPort().setCallback(onMqttParamsChanged);
 	MQTTBroker::getUser().setCallback(onMqttParamsChanged);
