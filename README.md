@@ -33,7 +33,7 @@ I also bought [these JST connectors from AliExpress](https://a.aliexpress.com/_m
 The wire colors match the original connector wire colors.
 ### Electronics
 I used a [ESP32 Pico D4 devkit](https://www.amazon.com/DIYmall-ESP32-PICO-KIT-Development-Board-ESP-32/dp/B00RSPTHE0) that I happened to have lying around. The signal from these is
-3.3V so I added a CD40109B level shifter. Again I happened to have one lying around, but pretty much any level shifter
+3.3V so I added a [CD40109B level shifter](https://www.ti.com/product/CD40109B). Again I happened to have one lying around, but pretty much any level shifter
 would do.
 
 This is how it is wired up:
