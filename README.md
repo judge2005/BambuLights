@@ -11,6 +11,7 @@ This project uses PlatformIO IDE. It is easy to build and upload to the hardware
 check out the repo and open it in PlatformIO. There are two artifacts:
 - firmware.bin - the firmware!
 - littlefs.bin - the GUI
+
 When the software first runs it will create an access point that you can use to connect it to your local network.
 The SSID for the access point will be some hex numbers followed by _bambulights_, for example _5FC874bambulights_.
 ### Installing
