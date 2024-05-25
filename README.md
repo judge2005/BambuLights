@@ -1,7 +1,9 @@
 # Interface NeoPixels (aka Addressable LED Strip) with Bambu Lab Printers
-I use the BV Riser with my Bambu Labs X1C that has a facility for adding additional lighting, but I also like the idea
-of the BLLED project that adds lighting that reacts to the state of the printer. I can't use BLLED with the riser because
-the LEDs are too big, so I developed this project which uses WS2812B LEDs to do the same thing.
+I use the [BLV AMS Riser](https://makerworld.com/en/models/19535) with my Bambu Labs X1C that has a facility for adding
+additional lighting, but I also like the idea of the [BLLED project](https://github.com/DutchDevelop/BLLEDController)
+that adds lighting that reacts to the state of the printer. I can't use BLLED with the riser because
+the LEDs are too big, but I have a lot of experience developing hardware and software that uses ESP32 and 
+addressable LEDs so I developed this project to do the same thing, but for 5V WS2812B LED strips.
 
 ![Lights in action](docs/IMG_0339.jpg)
 ## Software
@@ -13,7 +15,21 @@ When the software first runs it will create an access point that you can use to 
 The SSID for the access point will be some hex numbers followed by _bambulights_, for example _5FC874bambulights_.
 ## Hardware
 The hardware is pretty simple. The LEDs take less than 0.7A total, so most ESP32 dev kits will be able to provide the
-5V power for the LEDs. I used a ESP32 Pico D4 module that I happened to have lying around. The signal from these is
+5V power for the LEDs.
+### Lights
+I used some [high-density WS2812B LED strips available on AliExpress](https://a.aliexpress.com/_mOUCHh0).
+They are 5mm flexible LED strips with 160 LEDs/m. They have an adhesive backing so I just left the backing on
+so I could slide them in to the channels in the riser. I cut them to 210mm, which is 33 LEDs.
+
+You will need to solder 28AWG hookup wire to the terminals on the strips, preferably white, red and green to match the wiring used in the original
+connector. This gauge allows you to thread three wires through the channel in the riser rather than just two.
+
+Wire the two strips in parallel.
+
+I also bought [these JST connectors from AliExpress](https://a.aliexpress.com/_mtc1dYm) so I could easily connect/disconnect the electronics.
+The wire colors match the original connector wire colors.
+### Electronics
+I used a ESP32 Pico D4 module that I happened to have lying around. The signal from these is
 3.3V so I added a CD40109B level shifter. Again I happened to have one lying around, but pretty much any level shifter
 would do.
 
