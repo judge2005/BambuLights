@@ -28,7 +28,7 @@ const char *manifest[]{
     // Firmware name
     "Bambu Lighting",
     // Firmware version
-    "0.1.0",
+    "0.2.0",
     // Hardware chip/variant
     "ESP32",
     // Device name
@@ -138,6 +138,7 @@ void ledTaskFn(void *pArg) {
 	BambuLights::State prevLightsState = BambuLights::noWiFi;
 	long startIdleTimeMs = 0;
 	bool inFinishedPhase = false;
+	bool doorWasOpen = false;
 
 	while (true) {
 		mqttBroker.checkConnection();
@@ -153,16 +154,29 @@ void ledTaskFn(void *pArg) {
 					lightsState = BambuLights::noPrinter;
 					break;
 				case MQTTBroker::idle:
-					if (prevLightsState == BambuLights::printing && !inFinishedPhase && BambuLights::getIdleTimeout() > 0) {
-						inFinishedPhase = true;
-						startIdleTimeMs = millis();
-						lightsState = BambuLights::finished;
-					} else {
-						if (inFinishedPhase && (millis() - startIdleTimeMs < BambuLights::getIdleTimeout() * 60000)) {
+					{
+						lightsState = BambuLights::printer;
+
+						if (prevLightsState == BambuLights::printing && !inFinishedPhase) {
+							inFinishedPhase = true;
+							startIdleTimeMs = millis();
 							lightsState = BambuLights::finished;
-						} else {
-							inFinishedPhase = false;
-							lightsState = BambuLights::printer;
+						}
+
+						if (inFinishedPhase) {
+							lightsState = BambuLights::finished;
+
+							// Switch to normal idle lights if timed out
+							if (BambuLights::getIdleTimeout() > 0 && (millis() - startIdleTimeMs > BambuLights::getIdleTimeout() * 60000)) {
+								lightsState = BambuLights::printer;
+								inFinishedPhase = false;
+							}
+
+							// Switch to normal idle lights if door is opened after print complete
+							if (!doorWasOpen && mqttBroker.isDoorOpen()) {
+								lightsState = BambuLights::printer;
+								inFinishedPhase = false;
+							}
 						}
 					}
 					break;
@@ -180,6 +194,7 @@ void ledTaskFn(void *pArg) {
 					break;
 			}
 			prevLightsState = lightsState;
+			doorWasOpen = mqttBroker.isDoorOpen();
 
 			// Override the results if told to
 			if (BambuLights::getLightMode() == 0) {

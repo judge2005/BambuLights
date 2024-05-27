@@ -49,7 +49,7 @@ std::map<int, std::string> MQTTBroker::CURRENT_STAGE_IDS = {
     {255, "idle"}
 };
 
-// What about spaghetti detected? Do we need to also check HMS?
+// What about spaghetti detected? Do we need to also check HMS (yes)
 std::set<int> MQTTBroker::ERROR_STAGES = {
     6, 17, 20, 21, 26, 27, 28, 32, 33, 34, 35
 };
@@ -61,6 +61,12 @@ std::set<int> MQTTBroker::CAMERA_OFF_STAGES = {
 std::set<int> MQTTBroker::IDLE_STAGES = {
     -1, 255
 };
+
+// convert some print_error codes into warnings
+std::set<int> MQTTBroker::PRINT_WARNINGS = {
+    0x03008011, 0x0C00800A
+};
+
 
 /*
         # Example payload:
@@ -200,6 +206,8 @@ std::map<int, std::string> MQTTBroker::HMS_SEVERITY_LEVELS = {
 MQTTBroker::MQTTBroker() : client(espMqttClientTypes::UseInternalTask::YES) {
 	filter["print"]["stg_cur"] = true;
 	filter["print"]["hms"] = true;
+    filter["print"]["print_error"] = true;
+	filter["print"]["home_flag"] = true;
 }
 
 void MQTTBroker::onConnect(bool sessionPresent)
@@ -231,6 +239,10 @@ void MQTTBroker::handleMQTTMessage(JsonDocument &jsonMsg) {
 
     JsonVariant printValues = jsonMsg["print"];
     if (printValues) {
+        if (printValues.containsKey("home_flag")) {
+            doorOpen = (printValues["home_flag"].as<uint32_t>() & 0x00800000) != 0;
+        }
+
         if (printValues.containsKey("stg_cur")) {
             int stage = printValues["stg_cur"];
             if (ERROR_STAGES.count(stage) > 0) {
@@ -265,6 +277,16 @@ void MQTTBroker::handleMQTTMessage(JsonDocument &jsonMsg) {
                     } else {
                         state = error;
                     }
+                }
+            }
+        }
+
+        if (printValues.containsKey("print_error")) {
+            int printError = printValues["print_error"].as<uint32_t>();
+            if (printError > 0) {
+                state = error;
+                if (PRINT_WARNINGS.count(printError) > 0) {
+                    state = warning;
                 }
             }
         }

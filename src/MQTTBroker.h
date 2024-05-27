@@ -23,6 +23,7 @@ public:
     void connect();
     void checkConnection();
     bool isConnected() { return connected; }
+    bool isDoorOpen() { return doorOpen; }
     State getState() { return state; }
 
 private:
@@ -41,6 +42,7 @@ private:
     bool reconnect = false;
     bool connected = false;
     State state = disconnected;
+    bool doorOpen;
 
     uint32_t lastReconnect = 0;
 
@@ -53,5 +55,7 @@ private:
     static std::set<int> ERROR_STAGES;
     static std::set<int> CAMERA_OFF_STAGES;
     static std::set<int> IDLE_STAGES;
+
+    static std::set<int> PRINT_WARNINGS;
 };
 #endif
