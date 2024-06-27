@@ -15,7 +15,7 @@ check out the repo and open it in PlatformIO. There are two artifacts:
 When the software first runs it will create an access point that you can use to connect it to your local network.
 The SSID for the access point will be some hex numbers followed by _bambulights_, for example _5FC874bambulights_.
 ### Installing
-Instead of building the software, you can install a release. Go [the latest release](https://github.com/judge2005/BambuLights/releases/tag/v0.1.0)
+Instead of building the software, you can install a release. Go [the latest release](https://github.com/judge2005/BambuLights/releases)
 and follow the instructions.
 ## Hardware
 The hardware is pretty simple. The LEDs take less than 0.7A total, so most ESP32 dev kits will be able to provide the
