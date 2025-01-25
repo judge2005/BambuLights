@@ -183,8 +183,22 @@ CompositeConfigItem& BambuLights::getAllConfig() {
     return config;
 };
 
-BambuLights::BambuLights(int numPixels, int pin) : pixels(numPixels, pin), currentState(noWiFi) {
+BambuLights::BambuLights(int pin) :
+    pixels(new NeoPixelBus <NeoGrbFeature, Neo800KbpsMethod>(getNumLEDs(), pin)),
+    pin(pin),
+    currentState(noWiFi)
+{
     setCurrentConfig(getNoWiFiConfig());
+}
+
+void BambuLights::updatePixelCount() {
+  if (pixels->PixelCount() != getNumLEDs()) {
+    clear();
+    show();
+    delete pixels;
+    pixels = new NeoPixelBus <NeoGrbFeature, Neo800KbpsMethod>(getNumLEDs(), pin);
+    begin();
+  }
 }
 
 void BambuLights::setState(State state) {
@@ -278,8 +292,8 @@ void BambuLights::setCurrentConfig(CompositeConfigItem& config) {
 }
 
 void BambuLights::begin()  {
-	pixels.Begin(); // This initializes the NeoPixel library.
-	pixels.Show();
+	pixels->Begin(); // This initializes the NeoPixel library.
+	pixels->Show();
 }
 
 void BambuLights::loop() {
@@ -352,8 +366,10 @@ void BambuLights::fill(uint8_t hue, uint8_t sat, uint8_t val) {
   static int oldHue = -1;
   static int oldSat = -1;
   static int oldVal = -1;
+  static byte oldCount = -1;
+  static byte oldLedType = -1;
 
-  if (hue != oldHue || sat != oldSat || val != oldVal) {
+  if (hue != oldHue || sat != oldSat || val != oldVal || oldCount != getNumLEDs() || oldLedType != getLedType()) {
     oldHue = hue;
     oldSat = sat;
     oldVal = val;
@@ -367,8 +383,14 @@ void BambuLights::fill(uint8_t hue, uint8_t sat, uint8_t val) {
 #endif
     RgbColor color = HsbColor((byte)(hue)/256.0, (byte)(sat)/256.0, val/256.0);
     // color = colorGamma.Correct(color);
-    for (uint8_t digit=0; digit < pixels.PixelCount(); digit++) {
-      pixels.SetPixelColor(digit, color);
+    if (getLedType() == 1)  { // RGB not GRB
+      uint8_t oldRed = color.R;
+      color.R = color.G;
+      color.G = oldRed;
+    }
+
+    for (uint8_t digit=0; digit < pixels->PixelCount(); digit++) {
+      pixels->SetPixelColor(digit, color);
     }
   }
 }
@@ -378,12 +400,17 @@ void BambuLights::clear() {
 }
 
 void BambuLights::show() {
-  pixels.Show();
+  pixels->Show();
 }
 
 void BambuLights::setPixelColor(uint8_t digit, uint8_t hue, uint8_t sat, uint8_t val) {
     RgbColor color = HsbColor((byte)(hue)/256.0, (byte)(sat)/256.0, val/256.0);
-    pixels.SetPixelColor(digit, colorGamma.Correct(color));
+    if (getLedType() == 1)  { // RGB not GRB
+      uint8_t oldRed = color.R;
+      color.R = color.G;
+      color.G = oldRed;
+    }
+    pixels->SetPixelColor(digit, colorGamma.Correct(color));
 }
 
 const String BambuLights::patterns_str[BambuLights::num_patterns] = 

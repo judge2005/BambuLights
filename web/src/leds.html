@@ -18,6 +18,24 @@
 						<label for="lights_reactive">Reactive</label>
 						</fieldset>
 					</div>
+					<div class="clearFloats"></div>
+					<div class="dispInlineLabel">
+						<label for="led_type">LED Type</label>
+					</div>
+					<div class="dispInline">
+						<select onchange="elementChange(this)" type="picklist"
+							id="led_type" data-mini="true">
+							<option value="0">GRB</option>
+							<option value="1">RGB</option>
+						</select>
+					</div>
+					<div class="clearFloats"></div>
+					<div class="dispInlineLabel">
+						<label for="num_leds">LED Count</label>
+					</div>
+					<div class="dispInlineLabel">
+						<input	onblur="elementBlur(this)" type="number" pattern="[0-9]*" id="num_leds" data-mini="true" />
+					</div>
 					<div class="clearFloats"><h3>Reactive Settings</h3></div>
 					<fieldset id="noWiFi-colors" data-collapsed="true" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
 						<legend>No WiFi</legend>

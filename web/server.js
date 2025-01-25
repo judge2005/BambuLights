@@ -79,6 +79,8 @@ var state = {
 	},
 	"2": {
 		'light_mode' : 2,
+		'led_type' : 1,
+		'num_leds' : 37,
 		'noWiFi-colors' : false,
 		'noWiFi-pattern': 1,
 		'noWiFi-pulse_per_min': 7,

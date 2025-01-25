@@ -8,7 +8,7 @@
 
 class BambuLights {
 public:
-  BambuLights(int numPixels, int pin);
+  BambuLights(int pin);
 
   enum Patterns { constant, pulse, num_patterns };
   enum State { noWiFi, noPrinter, printer, printing, no_lights, white, error, warning, finished };
@@ -25,9 +25,12 @@ public:
   static CompositeConfigItem& getFinishedConfig();
   static ByteConfigItem& getIdleTimeout() { static ByteConfigItem timeout("timeout", 5); return timeout; }
   static ByteConfigItem& getLightMode() { static ByteConfigItem light_mode("light_mode", 2); return light_mode; }
+  static ByteConfigItem& getLedType() { static ByteConfigItem led_type("led_type", 0); return led_type; } /* 0 = GRB, 1 = RGB */
+  static ByteConfigItem& getNumLEDs() { static ByteConfigItem num_leds("num_leds", 36); return num_leds; }
 
   void begin();
   void loop();
+  void updatePixelCount();
 
   void setState(State state);
   void setBrightness(byte brightness) { this->brightness = brightness; }
@@ -36,8 +39,9 @@ private:
   bool black = false;
   bool brightWhite = false;
   byte brightness = 255;
+  int pin;
   
-  NeoPixelBus <NeoGrbFeature, Neo800KbpsMethod> pixels;
+  NeoPixelBus <NeoGrbFeature, Neo800KbpsMethod> *pixels;
   NeoGamma<NeoGammaTableMethod> colorGamma;
 
   State currentState;

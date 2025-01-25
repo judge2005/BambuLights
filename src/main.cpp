@@ -28,7 +28,7 @@ const char *manifest[]{
     // Firmware name
     "Bambu Lighting",
     // Firmware version
-    "0.2.0",
+    "0.3.0",
     // Hardware chip/variant
     "ESP32",
     // Device name
@@ -42,7 +42,7 @@ AsyncWiFiManager wifiManager(&server, &dns);
 ASyncOTAWebUpdate otaUpdater(Update, "update", "secretsauce");
 AsyncWiFiManagerParameter *hostnameParam;
 MQTTBroker mqttBroker;
-BambuLights bambuLights(36, 27);
+BambuLights bambuLights(27);
 
 SemaphoreHandle_t wsMutex;
 
@@ -70,6 +70,8 @@ BaseConfigItem* rootConfigSet[] = {
   &mqttConfig,
   &BambuLights::getAllConfig(),
   &BambuLights::getLightMode(),
+  &BambuLights::getLedType(),
+  &BambuLights::getNumLEDs(),
   0
 };
 
@@ -120,6 +122,14 @@ void improvTaskFn(void *pArg)
 
     delay(10);
   }
+}
+
+void onLedTypeChanged(ConfigItem<byte> &item) {
+	bambuLights.updatePixelCount();
+}
+
+void onNumLedsChanged(ConfigItem<byte> &item) {
+	bambuLights.updatePixelCount();
 }
 
 template<class T>
@@ -246,11 +256,19 @@ String* items[] {
 
 String ledConfigCallback() {
 	String json;
-	json.reserve(20);
+	json.reserve(100);
 	json.concat("\"");
 	json.concat(BambuLights::getLightMode().name);
 	json.concat("\":");
 	json.concat(BambuLights::getLightMode().toJSON());
+	json.concat(",\"");
+	json.concat(BambuLights::getLedType().name);
+	json.concat("\":");
+	json.concat(BambuLights::getLedType().toJSON());
+	json.concat(",\"");
+	json.concat(BambuLights::getNumLEDs().name);
+	json.concat("\":");
+	json.concat(BambuLights::getNumLEDs().toJSON());
 
 	return json;
 }
@@ -571,6 +589,9 @@ void setup()
     0);
 
 	hostName.setCallback(onHostnameChanged);
+	BambuLights::getLedType().setCallback(onLedTypeChanged);
+	BambuLights::getNumLEDs().setCallback(onNumLedsChanged);
+
 	MQTTBroker::getHost().setCallback(onMqttParamsChanged);
 	MQTTBroker::getPort().setCallback(onMqttParamsChanged);
 	MQTTBroker::getUser().setCallback(onMqttParamsChanged);
