@@ -28,7 +28,7 @@ const char *manifest[]{
     // Firmware name
     "Bambu Lighting",
     // Firmware version
-    "0.3.0",
+    "0.3.1",
     // Hardware chip/variant
     "ESP32",
     // Device name
@@ -42,7 +42,7 @@ AsyncWiFiManager wifiManager(&server, &dns);
 ASyncOTAWebUpdate otaUpdater(Update, "update", "secretsauce");
 AsyncWiFiManagerParameter *hostnameParam;
 MQTTBroker mqttBroker;
-BambuLights bambuLights(27);
+BambuLights *bambuLights;
 
 SemaphoreHandle_t wsMutex;
 
@@ -70,8 +70,6 @@ BaseConfigItem* rootConfigSet[] = {
   &mqttConfig,
   &BambuLights::getAllConfig(),
   &BambuLights::getLightMode(),
-  &BambuLights::getLedType(),
-  &BambuLights::getNumLEDs(),
   0
 };
 
@@ -125,11 +123,11 @@ void improvTaskFn(void *pArg)
 }
 
 void onLedTypeChanged(ConfigItem<byte> &item) {
-	bambuLights.updatePixelCount();
+	bambuLights->updatePixelCount();
 }
 
 void onNumLedsChanged(ConfigItem<byte> &item) {
-	bambuLights.updatePixelCount();
+	bambuLights->updatePixelCount();
 }
 
 template<class T>
@@ -144,7 +142,7 @@ void onHostnameChanged(ConfigItem<T> &item) {
 }
 
 void ledTaskFn(void *pArg) {
-	bambuLights.begin();
+	bambuLights->begin();
 	BambuLights::State prevLightsState = BambuLights::noWiFi;
 	long startIdleTimeMs = 0;
 	bool inFinishedPhase = false;
@@ -153,7 +151,7 @@ void ledTaskFn(void *pArg) {
 	while (true) {
 		mqttBroker.checkConnection();
 
-		bambuLights.setBrightness(255);	// Brightness scale factor
+		bambuLights->setBrightness(255);	// Brightness scale factor
 
 		BambuLights::State lightsState = BambuLights::noWiFi;
 
@@ -214,9 +212,9 @@ void ledTaskFn(void *pArg) {
 			}
 		}
 
-		bambuLights.setState(lightsState);
+		bambuLights->setState(lightsState);
 
-		bambuLights.loop();
+		bambuLights->loop();
 		delay(16);
 	}
 }
@@ -261,14 +259,6 @@ String ledConfigCallback() {
 	json.concat(BambuLights::getLightMode().name);
 	json.concat("\":");
 	json.concat(BambuLights::getLightMode().toJSON());
-	json.concat(",\"");
-	json.concat(BambuLights::getLedType().name);
-	json.concat("\":");
-	json.concat(BambuLights::getLedType().toJSON());
-	json.concat(",\"");
-	json.concat(BambuLights::getNumLEDs().name);
-	json.concat("\":");
-	json.concat(BambuLights::getNumLEDs().toJSON());
 
 	return json;
 }
@@ -523,6 +513,8 @@ void setup()
 	initFromEEPROM();
 
 	LittleFS.begin();
+
+	bambuLights = new BambuLights(27);
 
   xTaskCreatePinnedToCore(
     commitEEPROMTaskFn,   /* Function to implement the task */

@@ -175,6 +175,8 @@ CompositeConfigItem& BambuLights::getAllConfig() {
         &getErrorConfig(),
         &getWarningConfig(),
         &getFinishedConfig(),
+        &getLedType(),
+        &getNumLEDs(),
 	      0
     };
 
@@ -193,7 +195,9 @@ BambuLights::BambuLights(int pin) :
 
 void BambuLights::updatePixelCount() {
   if (pixels->PixelCount() != getNumLEDs()) {
-    clear();
+    pixels->ClearTo(0);
+    show();
+    pixels->Dirty();
     show();
     delete pixels;
     pixels = new NeoPixelBus <NeoGrbFeature, Neo800KbpsMethod>(getNumLEDs(), pin);

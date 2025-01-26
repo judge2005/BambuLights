@@ -24,8 +24,10 @@ String WSLEDConfigHandler::getData(char *data) {
 				json.concat(sep);
 				json.concat("\"");
 				json.concat(name);
-				json.concat("-");
-				json.concat(item.name);
+				if (strcmp(name, item.name) != 0) {
+					json.concat("-");
+					json.concat(item.name);
+				}
 				json.concat("\":");
 				json.concat(item.toJSON());
 				sep = ',';
