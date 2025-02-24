@@ -23,7 +23,8 @@ The hardware is pretty simple. The LEDs take less than 0.7A total, so most ESP32
 ### Lights
 I used some [high-density WS2812B LED strips available on AliExpress](https://a.aliexpress.com/_mOUCHh0).
 They are 5mm flexible LED strips with 160 LEDs/m. They have an adhesive backing so I just left the backing on
-so I could slide them in to the channels in the riser. I cut them to 210mm, which is 33 LEDs.
+so I could slide them in to the channels in the riser. I cut them to 210mm, which is 33 LEDs. The software allows
+you to specify how many LEDs you have and also change between GRB (standard for WS2812B strips) and RGB (standard for APA106 strips).
 
 You will need to solder 28AWG hookup wire to the terminals on the strips, preferably white, red and green to match the wiring used in the original
 connector. This gauge allows you to thread three wires through the channel in the riser rather than just two.
