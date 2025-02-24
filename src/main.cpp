@@ -28,7 +28,7 @@ const char *manifest[]{
     // Firmware name
     "Bambu Lighting",
     // Firmware version
-    "0.3.1",
+    "0.3.2",
     // Hardware chip/variant
     "ESP32",
     // Device name
