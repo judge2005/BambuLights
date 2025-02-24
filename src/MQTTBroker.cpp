@@ -8,6 +8,21 @@
 
 extern AsyncWiFiManager wifiManager;
 
+/*
+CHAMBER_LIGHT_ON = {
+    "system": {"sequence_id": "0", "command": "ledctrl", "led_node": "chamber_light", "led_mode": "on",
+               "led_on_time": 500, "led_off_time": 500, "loop_times": 0, "interval_time": 0}}
+CHAMBER_LIGHT_OFF = {
+    "system": {"sequence_id": "0", "command": "ledctrl", "led_node": "chamber_light", "led_mode": "off",
+               "led_on_time": 500, "led_off_time": 500, "loop_times": 0, "interval_time": 0}}
+
+        result = self.client.publish(f"device/{self._serial}/request", json.dumps(msg))
+*/
+
+const char* CHAMBER_LIGHT_ON = R"({"system": {"sequence_id": "0", "command": "ledctrl", "led_node": "chamber_light", "led_mode": "on","led_on_time": 500, "led_off_time": 500, "loop_times": 0, "interval_time": 0}})";
+
+const char* CHAMBER_LIGHT_OFF = R"({"system": {"sequence_id": "0", "command": "ledctrl", "led_node": "chamber_light", "led_mode": "off","led_on_time": 500, "led_off_time": 500, "loop_times": 0, "interval_time": 0}})";
+
 std::map<int, std::string> MQTTBroker::CURRENT_STAGE_IDS = {
     {0, "printing"},
     {1, "auto_bed_leveling"},
@@ -215,6 +230,7 @@ void MQTTBroker::onConnect(bool sessionPresent)
     connected = true;
     state = idle;
 	reconnect = false;
+    chamberLight = -1;
 	Serial.println("Connected to Printer");
 	Serial.print("Session present: ");
 	Serial.println(sessionPresent);
@@ -231,6 +247,16 @@ void MQTTBroker::onDisconnect(espMqttClientTypes::DisconnectReason reason)
     state = disconnected;
     reconnect = true;
     lastReconnect = millis();
+}
+
+void MQTTBroker::setChamberLight(bool on) {
+    if (connected) {
+        int _clOn = on ? 1 : 0;
+        if (chamberLight != _clOn) {
+            chamberLight = _clOn;
+            client.publish(requestTopic, 0, false, on ? CHAMBER_LIGHT_ON : CHAMBER_LIGHT_OFF);
+        }
+    }
 }
 
 void MQTTBroker::handleMQTTMessage(JsonDocument &jsonMsg) {

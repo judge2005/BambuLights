@@ -25,6 +25,7 @@ public:
     bool isConnected() { return connected; }
     bool isDoorOpen() { return doorOpen; }
     State getState() { return state; }
+    void setChamberLight(bool on);
 
 private:
     void onConnect(bool sessionPresent);
@@ -43,6 +44,7 @@ private:
     bool connected = false;
     State state = disconnected;
     bool doorOpen;
+    int chamberLight = -1;
 
     uint32_t lastReconnect = 0;
 

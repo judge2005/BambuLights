@@ -207,8 +207,12 @@ void ledTaskFn(void *pArg) {
 			// Override the results if told to
 			if (BambuLights::getLightMode() == 0) {
 				lightsState = BambuLights::white;
+				mqttBroker.setChamberLight(true);
 			} else if (BambuLights::getLightMode() == 1) {
 				lightsState = BambuLights::no_lights;
+				mqttBroker.setChamberLight(false);
+			} else if (BambuLights::getLightMode() == 2) {
+				mqttBroker.setChamberLight(true);
 			}
 		}
 
