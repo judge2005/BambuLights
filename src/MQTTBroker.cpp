@@ -23,6 +23,19 @@ const char* CHAMBER_LIGHT_ON = R"({"system": {"sequence_id": "0", "command": "le
 
 const char* CHAMBER_LIGHT_OFF = R"({"system": {"sequence_id": "0", "command": "ledctrl", "led_node": "chamber_light", "led_mode": "off","led_on_time": 500, "led_off_time": 500, "loop_times": 0, "interval_time": 0}})";
 
+/*
+        "lights_report": [
+            {
+                "mode": "on",
+                "node": "chamber_light"
+            },
+            {
+                "mode": "flashing",
+                "node": "work_light"
+            }
+        ],
+*/
+
 std::map<int, std::string> MQTTBroker::CURRENT_STAGE_IDS = {
     {0, "printing"},
     {1, "auto_bed_leveling"},
@@ -223,6 +236,7 @@ MQTTBroker::MQTTBroker() : client(espMqttClientTypes::UseInternalTask::YES) {
 	filter["print"]["hms"] = true;
     filter["print"]["print_error"] = true;
 	filter["print"]["home_flag"] = true;
+	filter["print"]["lights_report"] = true;
 }
 
 void MQTTBroker::onConnect(bool sessionPresent)
@@ -230,7 +244,8 @@ void MQTTBroker::onConnect(bool sessionPresent)
     connected = true;
     state = idle;
 	reconnect = false;
-    chamberLight = -1;
+    chamberLightControl = -1;
+    lightOn = true;
 	Serial.println("Connected to Printer");
 	Serial.print("Session present: ");
 	Serial.println(sessionPresent);
@@ -252,8 +267,8 @@ void MQTTBroker::onDisconnect(espMqttClientTypes::DisconnectReason reason)
 void MQTTBroker::setChamberLight(bool on) {
     if (connected) {
         int _clOn = on ? 1 : 0;
-        if (chamberLight != _clOn) {
-            chamberLight = _clOn;
+        if (chamberLightControl != _clOn) {
+            chamberLightControl = _clOn;
             client.publish(requestTopic, 0, false, on ? CHAMBER_LIGHT_ON : CHAMBER_LIGHT_OFF);
         }
     }
@@ -279,6 +294,16 @@ void MQTTBroker::handleMQTTMessage(JsonDocument &jsonMsg) {
                 state = idle;
             } else {
                 state = printing;
+            }
+        }
+
+        JsonVariant lights = printValues["lights_report"];
+        if (lights) {
+            JsonArray lightsArray = lights.as<JsonArray>();
+            for (int i=0; i<lightsArray.size(); i++) {
+                if (lightsArray[i]["node"].as<String>() == "chamber_light") {
+                    lightOn = lightsArray[i]["mode"].as<String>() == "on";
+                }
             }
         }
 

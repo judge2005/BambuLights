@@ -28,7 +28,7 @@ const char *manifest[]{
     // Firmware name
     "Bambu Lighting",
     // Firmware version
-    "0.3.2",
+    "0.3.3",
     // Hardware chip/variant
     "ESP32",
     // Device name
@@ -201,6 +201,7 @@ void ledTaskFn(void *pArg) {
 					lightsState = BambuLights::error;
 					break;
 			}
+
 			prevLightsState = lightsState;
 			doorWasOpen = mqttBroker.isDoorOpen();
 
@@ -216,7 +217,12 @@ void ledTaskFn(void *pArg) {
 			}
 		}
 
-		bambuLights->setState(lightsState);
+		if (!mqttBroker.isLightOn()) {
+			/* If the chamber light was turned off, turn bambulights off too */
+			bambuLights->setState(BambuLights::no_lights);
+		} else {
+			bambuLights->setState(lightsState);
+		}
 
 		bambuLights->loop();
 		delay(16);
