@@ -60,7 +60,8 @@ of the device itself:
 ![Open box](docs/IMG_0340.jpg)
 
 The second allows you to set the colors and effects for the different printer states, and also to force the LEDs to
-be off, on (white) or reactive to the state of the printer:
+be off, on (white) or reactive to the state of the printer. If you turn off the chamber light (for example with the BambuHandy app) the controller will also turn off the led strip.
+Similarly if you turn off the led strip with the GUI, the controller will also send a command to turn off the chamber light (Bambu may prevent this from working with later firmwares):
 
 ![Open box](docs/IMG_0341.jpg)
 
