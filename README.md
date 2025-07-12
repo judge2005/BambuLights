@@ -67,20 +67,26 @@ And attached to the back of the printer:
 
 ![Mounted box](docs/IMG_0337.jpg)
 # GUI
-There is a web GUI that allows you to configure the printer details and the colors and behaviors of the LEDs. This is
+There is a web GUI that allows you to configure the printer connection, the Homeassistant connection and the colors and behaviors of the LEDs. This is
 available at http://bambulights.local/ (assuming your PC/phone understands the .local suffix). When you make a
 change in the GUI it will be immediately reflected in the device.
 
-There are three screens. The first allows you to set the connection details for the printer and to change the hostname
+There are four screens.
+
+The first allows you to set the colors and effects for the different printer states, and also to force the LEDs to
+be on or off, oand to set whether the lights are full white or reactive to the state of the printer. If you turn off the chamber light (for example with the BambuHandy app) the controller will also turn off the led strip. Similarly if you turn off the led strip with the GUI, the controller will also send a command to turn off the chamber light:
+
+![LED controls](docs/IMG_2098.jpg)
+
+The second allows you to set the connection details for the printer and to change the hostname
 of the device itself:
 
-![Open box](docs/IMG_0340.jpg)
+![Printer connection](docs/IMG_0340.jpg)
 
-The second allows you to set the colors and effects for the different printer states, and also to force the LEDs to
-be off, on (white) or reactive to the state of the printer. If you turn off the chamber light (for example with the BambuHandy app) the controller will also turn off the led strip.
-Similarly if you turn off the led strip with the GUI, the controller will also send a command to turn off the chamber light (Bambu may prevent this from working with later firmwares):
+The third allows you to set the connection details for Homeassistant (MQTT). When it connects the device will auto-register as _Bambu_ and you can use it
+to turn the lights on and off and to change the effect (white or reactive):
 
-![Open box](docs/IMG_0341.jpg)
+![Homeassistant connection](docs/IMG_2099.jpg)
 
 The last screen is for data nerds, it shows some stats about the device itself:
 
