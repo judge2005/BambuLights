@@ -31,7 +31,8 @@ var pages = {
 		"value": [
 			{"1": { "url" : "mqtt.html", "title" : "Printer" }},
 			{"2": { "url" : "leds.html", "title" : "LEDs" }},
-			{"3": { "url" : "info.html", "title" : "Info" }}
+			{"3": { "url" : "mqtt_ha.html", "title" : "Homeassistant" }},
+			{"4": { "url" : "info.html", "title" : "Info" }}
 		]
 	}
 
@@ -61,9 +62,17 @@ var sendMQTTValues = function(conn) {
 	conn.send(json);
 }
 
+var sendMQTTHAValues = function(conn) {
+	var json = '{"type":"sv.init.mqtt_ha","value":';
+	json += JSON.stringify(state[3]);
+	json += '}';
+	console.log(json);
+	conn.send(json);
+}
+
 var sendInfoValues = function(conn) {
 	var json = '{"type":"sv.init.info","value":';
-	json += JSON.stringify(state[3]);
+	json += JSON.stringify(state[4]);
 	json += '}';
 	console.log(json);
 	conn.send(json);
@@ -78,8 +87,9 @@ var state = {
 		'mqtt_serialnumber' : "abcdefg"
 	},
 	"2": {
-		'light_mode' : 2,
+		'light_mode' : 1,
 		'led_type' : 1,
+		'chamber_light' : true,
 		'num_leds' : 37,
 		'noWiFi-colors' : false,
 		'noWiFi-pattern': 1,
@@ -121,6 +131,12 @@ var state = {
 		'set_icon_leds': 'Bar'
 	},
 	"3": {
+		'mqtt_ha_host' : "192.168.10.20",
+		'mqtt_ha_port' : 1234,
+		'mqtt_ha_user' : "mosquitto",
+		'mqtt_ha_password' : "secret2",
+	},
+	"4": {
 		'esp_boot_version' : "1234",
 		'esp_free_heap' : "5678",
 		'esp_sketch_size' : "90123",
@@ -199,6 +215,9 @@ wss.on('connection', function(conn) {
     		sendLEDValues(conn);
     		break;
     	case 3:
+    		sendMQTTHAValues(conn);
+    		break;
+    	case 4:
     		sendInfoValues(conn);
     		break;
     	case 9:

@@ -17,6 +17,7 @@
 #include "WSLEDConfigHandler.h"
 #include "WSInfoHandler.h"
 #include "MQTTBroker.h"
+#include "MQTTHABroker.h"
 #include "BambuLights.h"
 
 #define DEBUG(...) { Serial.println(__VA_ARGS__); }
@@ -24,11 +25,14 @@
 #define DEBUG(...) {  }
 #endif
 
+static String TRUE_STRING("true");
+static String FALSE_STRING("false");
+
 const char *manifest[]{
     // Firmware name
     "Bambu Lighting",
     // Firmware version
-    "0.3.3",
+    "0.4.0",
     // Hardware chip/variant
     "ESP32",
     // Device name
@@ -42,6 +46,7 @@ AsyncWiFiManager wifiManager(&server, &dns);
 ASyncOTAWebUpdate otaUpdater(Update, "update", "secretsauce");
 AsyncWiFiManagerParameter *hostnameParam;
 MQTTBroker mqttBroker;
+MQTTHABroker mqttHABroker;
 BambuLights *bambuLights;
 
 SemaphoreHandle_t wsMutex;
@@ -50,7 +55,6 @@ TaskHandle_t wifiManagerTask;
 TaskHandle_t improvTask;
 TaskHandle_t ledTask;
 TaskHandle_t commitEEPROMTask;
-TaskHandle_t mqttBrokerTask;
 
 String ssid = "BambuLights";
 
@@ -66,10 +70,20 @@ BaseConfigItem* mqttConfigSet[] = {
 
 CompositeConfigItem mqttConfig("mqtt", 0, mqttConfigSet);
 
+BaseConfigItem* mqttHAConfigSet[] = {
+  &MQTTHABroker::getHost(),
+  &MQTTHABroker::getUser(),
+  &MQTTHABroker::getPassword(),
+  &MQTTHABroker::getPort(),
+  0
+};
+
+CompositeConfigItem mqttHAConfig("mqtt_ha", 0, mqttHAConfigSet);
+
 BaseConfigItem* rootConfigSet[] = {
   &mqttConfig,
+  &mqttHAConfig,
   &BambuLights::getAllConfig(),
-  &BambuLights::getLightMode(),
   0
 };
 
@@ -81,6 +95,7 @@ EEPROMConfig config(rootConfig);
 void setWiFiCredentials(const char *ssid, const char *password);
 void setWiFiAP(bool);
 void infoCallback();
+void broadcastUpdate(String originalKey, String& originalValue);
 
 String getChipId(void)
 {
@@ -126,6 +141,22 @@ void onLedTypeChanged(ConfigItem<byte> &item) {
 	bambuLights->updatePixelCount();
 }
 
+std::function<void()> lightModeChanged = [](){};
+
+void setLightModeChangeCallback(std::function<void()> callback) {
+	lightModeChanged = callback;
+}
+
+void onLightModeChanged(ConfigItem<byte> &item) {
+	lightModeChanged();
+}
+
+std::function<void()> chamberLightChanged = [](){};
+
+void setChamberLightChangeCallback(std::function<void()> callback) {
+	chamberLightChanged = callback;
+}
+
 void onNumLedsChanged(ConfigItem<byte> &item) {
 	bambuLights->updatePixelCount();
 }
@@ -133,6 +164,11 @@ void onNumLedsChanged(ConfigItem<byte> &item) {
 template<class T>
 void onMqttParamsChanged(ConfigItem<T> &item) {
 	mqttBroker.init(ssid);
+}
+
+template<class T>
+void onMqttHAParamsChanged(ConfigItem<T> &item) {
+	mqttHABroker.init(ssid);
 }
 
 template<class T>
@@ -147,9 +183,11 @@ void ledTaskFn(void *pArg) {
 	long startIdleTimeMs = 0;
 	bool inFinishedPhase = false;
 	bool doorWasOpen = false;
+	bool chamberLightWasOn = true;
 
 	while (true) {
 		mqttBroker.checkConnection();
+		mqttHABroker.checkConnection();
 
 		bambuLights->setBrightness(255);	// Brightness scale factor
 
@@ -205,24 +243,23 @@ void ledTaskFn(void *pArg) {
 			prevLightsState = lightsState;
 			doorWasOpen = mqttBroker.isDoorOpen();
 
+            if (mqttBroker.isLightOn() != chamberLightWasOn) {
+				chamberLightWasOn = mqttBroker.isLightOn();
+				broadcastUpdate("chamber_light", chamberLightWasOn ? TRUE_STRING : FALSE_STRING);
+				chamberLightChanged();
+			}
+
 			// Override the results if told to
-			if (BambuLights::getLightMode() == 0) {
-				lightsState = BambuLights::white;
-				mqttBroker.setChamberLight(true);
-			} else if (BambuLights::getLightMode() == 1) {
+			if (!mqttBroker.isLightOn()) {
 				lightsState = BambuLights::no_lights;
-				mqttBroker.setChamberLight(false);
-			} else if (BambuLights::getLightMode() == 2) {
-				mqttBroker.setChamberLight(true);
+			} else {
+				if (BambuLights::getLightMode() == 0) {
+					lightsState = BambuLights::white;
+				}
 			}
 		}
 
-		if (!mqttBroker.isLightOn()) {
-			/* If the chamber light was turned off, turn bambulights off too */
-			bambuLights->setState(BambuLights::no_lights);
-		} else {
-			bambuLights->setState(lightsState);
-		}
+		bambuLights->setState(lightsState);
 
 		bambuLights->loop();
 		delay(16);
@@ -256,8 +293,9 @@ void sendFavicon(AsyncWebServerRequest *request) {
 }
 
 String* items[] {
-	&WSMenuHandler::mqttMenu,
 	&WSMenuHandler::ledsMenu,
+	&WSMenuHandler::mqttMenu,
+	&WSMenuHandler::mqttHAMenu,
 	&WSMenuHandler::infoMenu,
 	0
 };
@@ -265,26 +303,25 @@ String* items[] {
 String ledConfigCallback() {
 	String json;
 	json.reserve(100);
-	json.concat("\"");
-	json.concat(BambuLights::getLightMode().name);
-	json.concat("\":");
-	json.concat(BambuLights::getLightMode().toJSON());
+	json.concat("\"chamber_light\":");
+	json.concat(mqttBroker.isLightOn() ? "true" : "false");
 
 	return json;
 }
 
 WSMenuHandler wsMenuHandler(items);
 WSConfigHandler wsMqttHandler(rootConfig, "mqtt");
+WSConfigHandler wsMqttHAHandler(rootConfig, "mqtt_ha");
 WSLEDConfigHandler wsLEDHandler(rootConfig, "leds", ledConfigCallback);
 WSInfoHandler wsInfoHandler(infoCallback);
 
 // Order of this needs to match the numbers in WSMenuHandler.cpp
 WSHandler* wsHandlers[] {
 	&wsMenuHandler,
-	&wsMqttHandler,
 	&wsLEDHandler,
+	&wsMqttHandler,
+	&wsMqttHAHandler,
 	&wsInfoHandler,
-	NULL,
 	NULL,
 	NULL,
 	NULL
@@ -301,7 +338,7 @@ void infoCallback() {
 	wsInfoHandler.setHostname(hostName);
 }
 
-void broadcastUpdate(String originalKey, const BaseConfigItem& item) {
+void broadcastUpdate(String originalKey, String& originalValue) {
 	xSemaphoreTake(wsMutex, portMAX_DELAY);
 
 	JsonDocument doc;
@@ -310,8 +347,7 @@ void broadcastUpdate(String originalKey, const BaseConfigItem& item) {
 	root["type"] = "sv.update";
 
 	JsonVariant value = root.createNestedObject("value");
-	String rawJSON = item.toJSON();	// This object needs to hang around until we are done serializing.
-	value[originalKey] = serialized(rawJSON.c_str());
+	value[originalKey] = serialized(originalValue.c_str());
 
 	size_t len = measureJson(root);
 	AsyncWebSocketMessageBuffer * buffer = ws.makeBuffer(len); //  creates a buffer (len + 1) for you.
@@ -321,6 +357,11 @@ void broadcastUpdate(String originalKey, const BaseConfigItem& item) {
 	}
 
 	xSemaphoreGive(wsMutex);
+}
+
+void broadcastUpdate(String originalKey, const BaseConfigItem& item) {
+	String rawJSON = item.toJSON();
+	broadcastUpdate(originalKey, rawJSON);
 }
 
 void updateValue(String originalKey, String _key, String value, BaseConfigItem *item) {
@@ -336,7 +377,9 @@ void updateValue(String originalKey, String _key, String value, BaseConfigItem *
 			broadcastUpdate(originalKey, *item);
 			item->notify();
 		} else if (_key == "wifi_ap") {
-			setWiFiAP(value == "true" ? true : false);
+			setWiFiAP(value == TRUE_STRING ? true : false);
+		} else if (_key == "chamber_light") {
+			mqttBroker.setChamberLight(value == TRUE_STRING ? true : false);
 		}
 	} else {
 		String firstKey = _key.substring(0, index);
@@ -538,7 +581,7 @@ void setup()
   xTaskCreatePinnedToCore(
 		ledTaskFn, /* Function to implement the task */
 		"led task", /* Name of the task */
-		1500,  /* Stack size in words */
+		4096,  /* Stack size in words */
 		NULL,  /* Task input parameter */
 		tskIDLE_PRIORITY + 2,  /* Priority of the task (idle) */
 		&ledTask,  /* Task handle. */
@@ -593,6 +636,7 @@ void setup()
 	hostName.setCallback(onHostnameChanged);
 	BambuLights::getLedType().setCallback(onLedTypeChanged);
 	BambuLights::getNumLEDs().setCallback(onNumLedsChanged);
+	BambuLights::getLightMode().setCallback(onLightModeChanged);
 
 	MQTTBroker::getHost().setCallback(onMqttParamsChanged);
 	MQTTBroker::getPort().setCallback(onMqttParamsChanged);
@@ -600,6 +644,12 @@ void setup()
 	MQTTBroker::getPassword().setCallback(onMqttParamsChanged);
 	MQTTBroker::getSerialNumber().setCallback(onMqttParamsChanged);
 	mqttBroker.init(ssid);
+
+	MQTTHABroker::getHost().setCallback(onMqttHAParamsChanged);
+	MQTTHABroker::getPort().setCallback(onMqttHAParamsChanged);
+	MQTTHABroker::getUser().setCallback(onMqttHAParamsChanged);
+	MQTTHABroker::getPassword().setCallback(onMqttHAParamsChanged);
+	mqttHABroker.init(ssid);
 
   Serial.print("setup() running on core ");
   Serial.println(xPortGetCoreID());

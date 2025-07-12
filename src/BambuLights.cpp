@@ -177,6 +177,7 @@ CompositeConfigItem& BambuLights::getAllConfig() {
         &getFinishedConfig(),
         &getLedType(),
         &getNumLEDs(),
+        &getLightMode(),
 	      0
     };
 
@@ -338,7 +339,7 @@ void BambuLights::crossFade(const CHSV& oldColor, const CHSV& newColor) {
   Serial.print("Blending from ");printCHSV(oldColor);Serial.print(" to ");printCHSV(newColor);Serial.println("");
 #endif
   TickType_t xLastWakeTime = xTaskGetTickCount();
-  const TickType_t xFrequency = 3 / portTICK_PERIOD_MS; // So we will take approximately 0.75s to do the whole blend
+  const TickType_t xFrequency = 2 / portTICK_PERIOD_MS; // So we will take approximately 0.75s to do the whole blend
 
   CHSV blendedColor;
   for (int i=0; i < 255; i++) {

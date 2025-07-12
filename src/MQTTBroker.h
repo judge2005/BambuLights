@@ -1,5 +1,5 @@
-#ifndef ELEKSTUBE_MQTT_H
-#define ELEKSTUBE_MQTT_H
+#ifndef MQTT_BROKER_H
+#define MQTT_BROKER_H
 #include <ConfigItem.h>
 #include <espMqttClient.h>
 #include <ArduinoJson.h>
@@ -45,7 +45,6 @@ private:
     bool connected = false;
     State state = disconnected;
     bool doorOpen;
-    int chamberLightControl = -1;
     bool lightOn = true;
 
     uint32_t lastReconnect = 0;

@@ -8,17 +8,6 @@
 
 extern AsyncWiFiManager wifiManager;
 
-/*
-CHAMBER_LIGHT_ON = {
-    "system": {"sequence_id": "0", "command": "ledctrl", "led_node": "chamber_light", "led_mode": "on",
-               "led_on_time": 500, "led_off_time": 500, "loop_times": 0, "interval_time": 0}}
-CHAMBER_LIGHT_OFF = {
-    "system": {"sequence_id": "0", "command": "ledctrl", "led_node": "chamber_light", "led_mode": "off",
-               "led_on_time": 500, "led_off_time": 500, "loop_times": 0, "interval_time": 0}}
-
-        result = self.client.publish(f"device/{self._serial}/request", json.dumps(msg))
-*/
-
 const char* CHAMBER_LIGHT_ON = R"({"system": {"sequence_id": "0", "command": "ledctrl", "led_node": "chamber_light", "led_mode": "on","led_on_time": 500, "led_off_time": 500, "loop_times": 0, "interval_time": 0}})";
 
 const char* CHAMBER_LIGHT_OFF = R"({"system": {"sequence_id": "0", "command": "ledctrl", "led_node": "chamber_light", "led_mode": "off","led_on_time": 500, "led_off_time": 500, "loop_times": 0, "interval_time": 0}})";
@@ -36,6 +25,7 @@ const char* CHAMBER_LIGHT_OFF = R"({"system": {"sequence_id": "0", "command": "l
         ],
 */
 
+//-1; 2; 14; 1; 8; 0
 std::map<int, std::string> MQTTBroker::CURRENT_STAGE_IDS = {
     {0, "printing"},
     {1, "auto_bed_leveling"},
@@ -83,6 +73,7 @@ std::set<int> MQTTBroker::ERROR_STAGES = {
 };
 
 std::set<int> MQTTBroker::CAMERA_OFF_STAGES = {
+    //1, 8, 9, 10, 12, 14, 18, 19
     8, 9, 10, 12, 18, 19
 };
 
@@ -244,7 +235,6 @@ void MQTTBroker::onConnect(bool sessionPresent)
     connected = true;
     state = idle;
 	reconnect = false;
-    chamberLightControl = -1;
     lightOn = true;
 	Serial.println("Connected to Printer");
 	Serial.print("Session present: ");
@@ -266,17 +256,13 @@ void MQTTBroker::onDisconnect(espMqttClientTypes::DisconnectReason reason)
 
 void MQTTBroker::setChamberLight(bool on) {
     if (connected) {
-        int _clOn = on ? 1 : 0;
-        if (chamberLightControl != _clOn) {
-            chamberLightControl = _clOn;
-            client.publish(requestTopic, 0, false, on ? CHAMBER_LIGHT_ON : CHAMBER_LIGHT_OFF);
-        }
+        client.publish(requestTopic, 0, false, on ? CHAMBER_LIGHT_ON : CHAMBER_LIGHT_OFF);
     }
 }
 
 void MQTTBroker::handleMQTTMessage(JsonDocument &jsonMsg) {
-    serializeJson(jsonMsg, Serial);
-    Serial.println("");
+    // serializeJson(jsonMsg, Serial);
+    // Serial.println("");
 
     JsonVariant printValues = jsonMsg["print"];
     if (printValues) {
@@ -343,7 +329,7 @@ void MQTTBroker::handleMQTTMessage(JsonDocument &jsonMsg) {
         }
     }
 
-    Serial.print("printer state=");Serial.println(state);
+    // Serial.print("printer state=");Serial.println(state);
 }
 
 void MQTTBroker::onCompleteMessage(const espMqttClientTypes::MessageProperties& properties, const char* topic, const uint8_t* payload, size_t length) {

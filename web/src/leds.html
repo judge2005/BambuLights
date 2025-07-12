@@ -6,15 +6,23 @@
             <div data-role="content">
                 <form action="/set_leds" method="POST" id="leds_form">
 					<div class="dispInlineLabel">
+						<label for="chamber_light">On/Off</label>
+					</div>
+					<div class="dispInline">
+						<input onchange="elementChange(this)" type="checkbox"
+							data-role="flipswitch" name="led_power" id="chamber_light"
+							data-on-text="On" data-off-text="Off"
+							data-wrapper-class="custom-label-flipswitch">
+					</div>
+					<div class="clearFloats"></div>
+					<div class="dispInlineLabel">
 						<label for="display_type">Light Mode</label>
 					</div>
 					<div class="dispInline">
 						<fieldset data-role="controlgroup" data-type="horizontal" data-mini="true" id="display_type">
 						<input onchange="elementChange(this);" type="radio" name="light_mode" id="lights_always_on" value="0">
-						<label for="lights_always_on">On</label>
-						<input onchange="elementChange(this);" type="radio" name="light_mode" id="lights_always_off" value="1">
-						<label for="lights_always_off">Off</label>
-						<input onchange="elementChange(this);" type="radio" name="light_mode" id="lights_reactive" value="2">
+						<label for="lights_always_on">White</label>
+						<input onchange="elementChange(this);" type="radio" name="light_mode" id="lights_reactive" value="1">
 						<label for="lights_reactive">Reactive</label>
 						</fieldset>
 					</div>

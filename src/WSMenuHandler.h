@@ -13,6 +13,7 @@ public:
 
 	static String ledsMenu;
 	static String mqttMenu;
+	static String mqttHAMenu;
 	static String infoMenu;
 
 private:
