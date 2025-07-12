@@ -8,10 +8,11 @@ This project uses common addressable LEDs to add additional lighting for a Bambu
 
 In addition it:
 
-* Turns of the LEDs while the X1C is using LIDAR
+* Turns off the LEDs while the X1C is using LIDAR
 * Syncronizes with the chamber light - if you turn it off, the additional LEDs will be turned off too
 * Support GRB (WS2812x style LEDS) and RGB (APA106 style LEDs)
 * Supports an arbitrary number of LEDs
+* Auto-registers with Homeassistant so you can (for example) turn the lights on and off on a schedule and control whether they are reactive to the state of the printer or just white
 
 In addition to providing extra lighting for the printer, it could just be used to provide a remote indication of the state
 of the printer since it doesn't use a physical connection.
@@ -74,7 +75,7 @@ change in the GUI it will be immediately reflected in the device.
 There are four screens.
 
 The first allows you to set the colors and effects for the different printer states, and also to force the LEDs to
-be on or off, oand to set whether the lights are full white or reactive to the state of the printer. If you turn off the chamber light (for example with the BambuHandy app) the controller will also turn off the led strip. Similarly if you turn off the led strip with the GUI, the controller will also send a command to turn off the chamber light:
+be on or off, and to set whether the lights are full white or reactive to the state of the printer. If you turn off the chamber light (for example with the BambuHandy app) the controller will also turn off the led strip. Similarly if you turn off the led strip with the GUI, the controller will also send a command to turn off the chamber light:
 
 ![LED controls](docs/IMG_2098.jpg)
 
