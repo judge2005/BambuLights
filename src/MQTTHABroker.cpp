@@ -11,7 +11,7 @@
 extern AsyncWiFiManager wifiManager;
 extern const char *manifest[];
 extern void setLightModeChangeCallback(std::function<void()> callback);
-extern void setChamberLightChangeCallback(std::function<void()> callback);
+extern void setLightStateChangeCallback(std::function<void()> callback);
 extern void broadcastUpdate(String originalKey, const BaseConfigItem& item);
 extern CompositeConfigItem rootConfig;
 extern MQTTBroker mqttBroker;
@@ -29,6 +29,7 @@ void MQTTHABroker::onConnect(bool sessionPresent)
 {
     connected = true;
 	reconnect = false;
+    client.subscribe("homeassistant/status", 2);
     sendHADiscoveryMessage();
 }
 
@@ -76,22 +77,21 @@ void MQTTHABroker::onCompleteMessage(const espMqttClientTypes::MessageProperties
 {
     Serial.printf("Received message %s on topic %s\n", (char*)payload, topic);
 
-    if (strcmp(topic, lightCommandTopic) == 0) {
+    if (strcmp(topic, "homeassistant/status") == 0) {
+        if (strcmp("online", (const char*)payload)) {
+            Serial.println("HA online");
+            sendHADiscoveryMessage();
+        }
+    } else if (strcmp(topic, lightCommandTopic) == 0) {
         if (strcmp((const char *)payload, "OFF") == 0) {
-            if (mqttBroker.isLightOn()) {
-                mqttBroker.setChamberLight(false);
-            } else {
-                publishLightState();
-            }
-        } else if (strcmp((const char *)payload, "ON") == 0){
-            if (!mqttBroker.isLightOn()) {
-                mqttBroker.setChamberLight(true);
-            } else {
-                publishLightState();
-            }
+            BambuLights::getLightState() = false;
+       } else if (strcmp((const char *)payload, "ON") == 0){
+            BambuLights::getLightState() = true;
         } else {
             Serial.printf("Unknown chamber light %s\n", (const char *)payload);
         }
+        broadcastUpdate(BambuLights::getLightState().name, BambuLights::getLightState());
+        publishLightState();
     } else if (strcmp(topic, effectCommandTopic) == 0) {
         bool found = false;
         for (int i=0; effectNames[i] != 0; i++) {
@@ -126,10 +126,12 @@ bool MQTTHABroker::init(const String& id) {
         sprintf(lightCommandTopic, "bambu_lights/%s/bambu_lights/light/set", id.c_str());
         sprintf(effectStateTopic,  "bambu_lights/%s/bambu_lights/effect/state", id.c_str());
         sprintf(effectCommandTopic,"bambu_lights/%s/bambu_lights/effect/set", id.c_str());
+        sprintf(availabilityTopic, "bambu_lights/%s/availability", id.c_str());
         
 
         client.setServer(getHost().value.c_str(), getPort());
         client.setCredentials(getUser().value.c_str(),getPassword().value.c_str());
+        client.setWill(availabilityTopic, 2, true, "offline");
         client.setClientId(id.c_str());
         client.onConnect([this](bool sessionPresent) { this->onConnect(sessionPresent); });
 #ifdef ASYNC_MTTT_HA_CLIENT
@@ -144,7 +146,7 @@ bool MQTTHABroker::init(const String& id) {
         });
 #endif
         setLightModeChangeCallback([this]() { this->publishEffectState(); });
-        setChamberLightChangeCallback([this]() { this->publishLightState(); });
+        setLightStateChangeCallback([this]() { this->publishLightState(); });
         
         reconnect = true;
     }
@@ -169,7 +171,7 @@ void MQTTHABroker::checkConnection() {
 void MQTTHABroker::publishLightState() {
     if (client.connected()) {
         JsonDocument state;
-        state["light"] = mqttBroker.isLightOn() ? "ON" : "OFF";
+        state["light"] = BambuLights::getLightState() ? "ON" : "OFF";
         char buffer[256];
         serializeJson(state, buffer);
 
@@ -177,7 +179,7 @@ void MQTTHABroker::publishLightState() {
         Serial.print(":");
         Serial.println(buffer);
 
-        uint16_t result = client.publish(lightStateTopic, 0, true, buffer);
+        uint16_t result = client.publish(lightStateTopic, 1, false, buffer);
         Serial.printf("State send result %d\n", result);
     }
 }
@@ -193,7 +195,7 @@ void MQTTHABroker::publishEffectState() {
         Serial.print(":");
         Serial.println(buffer);
 
-        uint16_t result = client.publish(effectStateTopic, 0, true, buffer);
+        uint16_t result = client.publish(effectStateTopic, 1, false, buffer);
 
         Serial.printf("State send result %d\n", result);
     }
@@ -215,6 +217,7 @@ void MQTTHABroker::sendHADiscoveryMessage() {
     doc["unique_id"] = "bambu_lights_" + id;
     doc["state_topic"] = lightStateTopic;
     doc["command_topic"] = lightCommandTopic;
+    doc["avty_t"] = availabilityTopic;
     doc["state_value_template"] = "{{value_json.light}}";
     doc["effect"] = true;
     doc["effect_state_topic"] = effectStateTopic;
@@ -232,7 +235,8 @@ void MQTTHABroker::sendHADiscoveryMessage() {
 
     size_t n = serializeJson(doc, buffer);
 
-    client.publish(discoveryTopic, 0, true, buffer);
+    client.publish(discoveryTopic, 2, false, buffer);
+    client.publish(availabilityTopic, 2, true, "online");
 
     Serial.print(discoveryTopic);
     Serial.print(":");

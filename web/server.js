@@ -90,6 +90,7 @@ var state = {
 		'light_mode' : 1,
 		'led_type' : 1,
 		'chamber_light' : true,
+		'chamber_sync' : true,
 		'num_leds' : 37,
 		'noWiFi-colors' : false,
 		'noWiFi-pattern': 1,

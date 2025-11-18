@@ -178,6 +178,8 @@ CompositeConfigItem& BambuLights::getAllConfig() {
         &getLedType(),
         &getNumLEDs(),
         &getLightMode(),
+        &getLightState(),
+        &getChamberSync(),
 	      0
     };
 

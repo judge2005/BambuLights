@@ -40,6 +40,7 @@ private:
     String id;
     JsonDocument filter;
     char persistentStateTopic[64];
+    char availabilityTopic[64];
     char lightStateTopic[64];
     char lightCommandTopic[64];
     char effectStateTopic[64];

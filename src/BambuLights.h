@@ -25,6 +25,8 @@ public:
   static CompositeConfigItem& getFinishedConfig();
   static ByteConfigItem& getIdleTimeout() { static ByteConfigItem timeout("timeout", 5); return timeout; }
   static ByteConfigItem& getLightMode() { static ByteConfigItem light_mode("light_mode", 1); return light_mode; } /* 0 = white, 1 = reactive */
+  static BooleanConfigItem& getLightState() { static BooleanConfigItem light_state("light_state", 1); return light_state; } /* true == on, false == off */
+  static BooleanConfigItem& getChamberSync() { static BooleanConfigItem chamber_sync("chamber_sync", 1); return chamber_sync; }
   static ByteConfigItem& getLedType() { static ByteConfigItem led_type("led_type", 0); return led_type; } /* 0 = GRB, 1 = RGB */
   static ByteConfigItem& getNumLEDs() { static ByteConfigItem num_leds("num_leds", 36); return num_leds; }
 

@@ -32,7 +32,7 @@ const char *manifest[]{
     // Firmware name
     "Bambu Lighting",
     // Firmware version
-    "0.4.0",
+    "0.4.1",
     // Hardware chip/variant
     "ESP32",
     // Device name
@@ -96,6 +96,7 @@ void setWiFiCredentials(const char *ssid, const char *password);
 void setWiFiAP(bool);
 void infoCallback();
 void broadcastUpdate(String originalKey, String& originalValue);
+void broadcastUpdate(String originalKey, const BaseConfigItem& item);
 
 String getChipId(void)
 {
@@ -151,10 +152,23 @@ void onLightModeChanged(ConfigItem<byte> &item) {
 	lightModeChanged();
 }
 
-std::function<void()> chamberLightChanged = [](){};
+std::function<void()> lightStateChanged = [](){};
 
-void setChamberLightChangeCallback(std::function<void()> callback) {
-	chamberLightChanged = callback;
+void setLightStateChangeCallback(std::function<void()> callback) {
+	lightStateChanged = callback;
+}
+
+void onLightStateChanged(ConfigItem<boolean> &lightState) {
+	lightStateChanged();
+	if (BambuLights::getChamberSync()) {
+		mqttBroker.setChamberLight(lightState);
+	}
+}
+
+void onChamberSyncChanged(ConfigItem<boolean> &chamberSync) {
+	if (chamberSync) {
+		mqttBroker.setChamberLight(BambuLights::getLightState());
+	}
 }
 
 void onNumLedsChanged(ConfigItem<byte> &item) {
@@ -240,17 +254,20 @@ void ledTaskFn(void *pArg) {
 					break;
 			}
 
-			prevLightsState = lightsState;
 			doorWasOpen = mqttBroker.isDoorOpen();
 
-            if (mqttBroker.isLightOn() != chamberLightWasOn) {
-				chamberLightWasOn = mqttBroker.isLightOn();
-				broadcastUpdate("chamber_light", chamberLightWasOn ? TRUE_STRING : FALSE_STRING);
-				chamberLightChanged();
+			boolean chamberLightIsOn = mqttBroker.isLightOn();
+            if (chamberLightIsOn != chamberLightWasOn) {
+				chamberLightWasOn = chamberLightIsOn;
+				if (BambuLights::getChamberSync() && (BambuLights::getLightState() != chamberLightIsOn)) {
+					BambuLights::getLightState() = chamberLightIsOn;
+					BambuLights::getLightState().notify();
+					broadcastUpdate(BambuLights::getLightState().name, BambuLights::getLightState());
+				}
 			}
 
 			// Override the results if told to
-			if (!mqttBroker.isLightOn()) {
+			if (!BambuLights::getLightState()) {
 				lightsState = BambuLights::no_lights;
 			} else {
 				if (BambuLights::getLightMode() == 0) {
@@ -300,19 +317,10 @@ String* items[] {
 	0
 };
 
-String ledConfigCallback() {
-	String json;
-	json.reserve(100);
-	json.concat("\"chamber_light\":");
-	json.concat(mqttBroker.isLightOn() ? "true" : "false");
-
-	return json;
-}
-
 WSMenuHandler wsMenuHandler(items);
 WSConfigHandler wsMqttHandler(rootConfig, "mqtt");
 WSConfigHandler wsMqttHAHandler(rootConfig, "mqtt_ha");
-WSLEDConfigHandler wsLEDHandler(rootConfig, "leds", ledConfigCallback);
+WSLEDConfigHandler wsLEDHandler(rootConfig, "leds");
 WSInfoHandler wsInfoHandler(infoCallback);
 
 // Order of this needs to match the numbers in WSMenuHandler.cpp
@@ -378,8 +386,6 @@ void updateValue(String originalKey, String _key, String value, BaseConfigItem *
 			item->notify();
 		} else if (_key == "wifi_ap") {
 			setWiFiAP(value == TRUE_STRING ? true : false);
-		} else if (_key == "chamber_light") {
-			mqttBroker.setChamberLight(value == TRUE_STRING ? true : false);
 		}
 	} else {
 		String firstKey = _key.substring(0, index);
@@ -637,6 +643,8 @@ void setup()
 	BambuLights::getLedType().setCallback(onLedTypeChanged);
 	BambuLights::getNumLEDs().setCallback(onNumLedsChanged);
 	BambuLights::getLightMode().setCallback(onLightModeChanged);
+	BambuLights::getLightState().setCallback(onLightStateChanged);
+	BambuLights::getChamberSync().setCallback(onChamberSyncChanged);
 
 	MQTTBroker::getHost().setCallback(onMqttParamsChanged);
 	MQTTBroker::getPort().setCallback(onMqttParamsChanged);
