@@ -16,6 +16,16 @@ extern void broadcastUpdate(String originalKey, const BaseConfigItem& item);
 extern CompositeConfigItem rootConfig;
 extern MQTTBroker mqttBroker;
 
+// disconnected, idle, printing, no_lights, error, warning
+std::map<MQTTBroker::State, std::string> MQTTHABroker::PRINTER_STATES = {
+    {MQTTBroker::disconnected, "disconnected"},
+    {MQTTBroker::idle, "idle"},
+    {MQTTBroker::printing, "printing"},
+    {MQTTBroker::no_lights, "no_lights"},
+    {MQTTBroker::error, "error"},
+    {MQTTBroker::warning, "warning"}
+};
+
 char *MQTTHABroker::effectNames[] = {
     "White",
     "Reactive",
@@ -82,13 +92,23 @@ void MQTTHABroker::onCompleteMessage(const espMqttClientTypes::MessageProperties
             Serial.println("HA online");
             sendHADiscoveryMessage();
         }
+    } else if (strcmp(topic, chamberLightCommandTopic) == 0) {
+        if (strcmp((const char *)payload, "OFF") == 0) {
+            mqttBroker.setChamberLight(false);
+       } else if (strcmp((const char *)payload, "ON") == 0){
+            mqttBroker.setChamberLight(true);
+        } else {
+            Serial.printf("Unknown chamber light %s\n", (const char *)payload);
+        }
+        broadcastUpdate(BambuLights::getLightState().name, BambuLights::getLightState());
+        publishLightState();
     } else if (strcmp(topic, lightCommandTopic) == 0) {
         if (strcmp((const char *)payload, "OFF") == 0) {
             BambuLights::getLightState() = false;
        } else if (strcmp((const char *)payload, "ON") == 0){
             BambuLights::getLightState() = true;
         } else {
-            Serial.printf("Unknown chamber light %s\n", (const char *)payload);
+            Serial.printf("Unknown strip light %s\n", (const char *)payload);
         }
         broadcastUpdate(BambuLights::getLightState().name, BambuLights::getLightState());
         publishLightState();
@@ -115,8 +135,24 @@ void MQTTHABroker::onCompleteMessage(const espMqttClientTypes::MessageProperties
     }
 }
 
+void MQTTHABroker::onPrinterStateChanged(MQTTBroker* printerBroker) {
+    if (client.connected()) {
+        JsonDocument state;
+        state["light"] = printerBroker->isLightOn() ? "ON" : "OFF";
+        state["door_open"] = printerBroker->isDoorOpen() ? "true" : "false";
+        state["connected"] = printerBroker->isConnected() ? "true" : "false";
+        state["state"] = PRINTER_STATES[printerBroker->getState()];
+
+        char buffer[256];
+        serializeJson(state, buffer);
+
+        uint16_t result = client.publish(printerStateTopic, 1, false, buffer);
+    }
+}
+
 bool MQTTHABroker::init(const String& id) {
     this->id = id;
+    mqttBroker.setStateChangedCallback([this](MQTTBroker* printerBroker) { onPrinterStateChanged(printerBroker); });
 
     client.disconnect();
 
@@ -124,11 +160,12 @@ bool MQTTHABroker::init(const String& id) {
     if (ipAddress.fromString(getHost().value.c_str())) {
         sprintf(lightStateTopic,   "bambu_lights/%s/bambu_lights/light/state", id.c_str());
         sprintf(lightCommandTopic, "bambu_lights/%s/bambu_lights/light/set", id.c_str());
+        sprintf(chamberLightCommandTopic, "bambu_lights/%s/bambu_lights/chamber_light/set", id.c_str());
         sprintf(effectStateTopic,  "bambu_lights/%s/bambu_lights/effect/state", id.c_str());
         sprintf(effectCommandTopic,"bambu_lights/%s/bambu_lights/effect/set", id.c_str());
+        sprintf(printerStateTopic,"bambu_lights/%s/bambu_lights/printer/state", id.c_str());
         sprintf(availabilityTopic, "bambu_lights/%s/availability", id.c_str());
         
-
         client.setServer(getHost().value.c_str(), getPort());
         client.setCredentials(getUser().value.c_str(),getPassword().value.c_str());
         client.setWill(availabilityTopic, 2, true, "offline");
@@ -204,13 +241,15 @@ void MQTTHABroker::publishEffectState() {
 void MQTTHABroker::sendHADiscoveryMessage() {
     client.subscribe(lightCommandTopic, 0);
     client.subscribe(effectCommandTopic, 0);
+    client.subscribe(chamberLightCommandTopic, 0);
+
+    char discoveryTopic[128];
+    char buffer[1024];
+    JsonDocument doc;
+    size_t n;
 
     // This is the discovery topic for the 'light_mode' switch
-    char discoveryTopic[128];
     sprintf(discoveryTopic, "homeassistant/light/%s/bambu_lights/config", id.c_str());
-
-    JsonDocument doc;
-    char buffer[1024];
 
     doc["name"] = "Bambu Lights";
     doc["icon"] = "mdi:led-strip-variant";
@@ -233,15 +272,34 @@ void MQTTHABroker::sendHADiscoveryMessage() {
     doc["device"]["model"] = manifest[0];
     doc["device"]["sw_version"] = manifest[1];
 
-    size_t n = serializeJson(doc, buffer);
+    n = serializeJson(doc, buffer);
 
     client.publish(discoveryTopic, 2, false, buffer);
-    client.publish(availabilityTopic, 2, true, "online");
 
-    Serial.print(discoveryTopic);
-    Serial.print(":");
-    Serial.println(buffer);
+    sprintf(discoveryTopic, "homeassistant/light/%s/chamber_light/config", id.c_str());
+
+    doc.clear();
+
+    doc["name"] = "Chamber Light";
+    doc["icon"] = "mdi:light-flood-down";
+    doc["unique_id"] = "chamber_light_" + id;
+    doc["state_topic"] = printerStateTopic;
+    doc["command_topic"] = chamberLightCommandTopic;
+    doc["avty_t"] = availabilityTopic;
+    doc["state_value_template"] = "{{value_json.light}}";
+    doc["device"]["configuration_url"] = "http://" + WiFi.localIP().toString() + "/";
+    doc["device"]["name"] = manifest[3];
+    doc["device"]["identifiers"][0] = WiFi.macAddress();
+    doc["device"]["model"] = manifest[0];
+    doc["device"]["sw_version"] = manifest[1];
+
+    n = serializeJson(doc, buffer);
+
+    client.publish(discoveryTopic, 2, false, buffer);
+
+    client.publish(availabilityTopic, 2, true, "online");
 
     publishLightState();
     publishEffectState();
+    onPrinterStateChanged(&mqttBroker);
 }

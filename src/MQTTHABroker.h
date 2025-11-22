@@ -23,6 +23,8 @@ public:
     void checkConnection();
 
 private:
+    void onPrinterStateChanged(MQTTBroker* printerBroker);
+
     void onConnect(bool sessionPresent);
 #ifdef ASYNC_MTTT_HA_CLIENT
     void onDisconnect(AsyncMqttClientDisconnectReason reason);
@@ -43,8 +45,10 @@ private:
     char availabilityTopic[64];
     char lightStateTopic[64];
     char lightCommandTopic[64];
+    char chamberLightCommandTopic[64];
     char effectStateTopic[64];
     char effectCommandTopic[64];
+    char printerStateTopic[64];
     static char* effectNames[];
 
     bool connected = false;
@@ -57,5 +61,6 @@ private:
     espMqttClient client;
 #endif
 
+    static std::map<MQTTBroker::State, std::string> PRINTER_STATES;
 };
 #endif

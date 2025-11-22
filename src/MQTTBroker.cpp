@@ -230,6 +230,11 @@ MQTTBroker::MQTTBroker() : client(espMqttClientTypes::UseInternalTask::YES) {
 	filter["print"]["lights_report"] = true;
 }
 
+void MQTTBroker::setStateChangedCallback(std::function<void(MQTTBroker*)> callback) {
+    stateChangedCallback = callback;
+}
+
+
 void MQTTBroker::onConnect(bool sessionPresent)
 {
     connected = true;
@@ -242,6 +247,7 @@ void MQTTBroker::onConnect(bool sessionPresent)
 	uint16_t packetIdSub = client.subscribe(reportTopic, 0);
 	Serial.print("Subscribing at QoS 0, packetId: ");
 	Serial.println(packetIdSub);
+    stateChangedCallback(this);
 }
 
 void MQTTBroker::onDisconnect(espMqttClientTypes::DisconnectReason reason)
@@ -252,6 +258,7 @@ void MQTTBroker::onDisconnect(espMqttClientTypes::DisconnectReason reason)
     state = disconnected;
     reconnect = true;
     lastReconnect = millis();
+    stateChangedCallback(this);
 }
 
 void MQTTBroker::setChamberLight(bool on) {
@@ -264,14 +271,19 @@ void MQTTBroker::handleMQTTMessage(JsonDocument &jsonMsg) {
     // serializeJson(jsonMsg, Serial);
     // Serial.println("");
 
+    bool stateChanged = false;
+
     JsonVariant printValues = jsonMsg["print"];
     if (printValues) {
         if (printValues.containsKey("home_flag")) {
+            bool oldDoorOpen = doorOpen;
             doorOpen = (printValues["home_flag"].as<uint32_t>() & 0x00800000) != 0;
+            stateChanged = stateChanged || (oldDoorOpen != doorOpen);
         }
 
         if (printValues.containsKey("stg_cur")) {
             int stage = printValues["stg_cur"];
+            State oldState = state;
             if (ERROR_STAGES.count(stage) > 0) {
                 state = error;
             } else if (CAMERA_OFF_STAGES.count(stage) > 0) {
@@ -281,22 +293,26 @@ void MQTTBroker::handleMQTTMessage(JsonDocument &jsonMsg) {
             } else {
                 state = printing;
             }
+            stateChanged = stateChanged || (oldState != state);
         }
 
         JsonVariant lights = printValues["lights_report"];
         if (lights) {
+            bool oldLightOn = lightOn;
             JsonArray lightsArray = lights.as<JsonArray>();
             for (int i=0; i<lightsArray.size(); i++) {
                 if (lightsArray[i]["node"].as<String>() == "chamber_light") {
                     lightOn = lightsArray[i]["mode"].as<String>() == "on";
                 }
             }
+            stateChanged = stateChanged || (oldLightOn != lightOn);
         }
 
         JsonVariant hms = printValues["hms"];
         if (hms) {
             JsonArray hmsArray = hms.as<JsonArray>();
             if (hmsArray.size() > 0) {
+                State oldState = state;
                 state = error;
                 for (int i=0; i<hmsArray.size(); i++) {
                     uint64_t attr = hmsArray[i]["attr"].as<uint64_t>(); 
@@ -315,20 +331,26 @@ void MQTTBroker::handleMQTTMessage(JsonDocument &jsonMsg) {
                         state = error;
                     }
                 }
+                stateChanged = stateChanged || (oldState != state);               
             }
         }
 
         if (printValues.containsKey("print_error")) {
             int printError = printValues["print_error"].as<uint32_t>();
             if (printError > 0) {
+                State oldState = state;
                 state = error;
                 if (PRINT_WARNINGS.count(printError) > 0) {
                     state = warning;
                 }
+                stateChanged = stateChanged || (oldState != state);               
             }
         }
     }
 
+    if (stateChanged) {
+        stateChangedCallback(this);
+    }
     // Serial.print("printer state=");Serial.println(state);
 }
 

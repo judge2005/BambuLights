@@ -19,6 +19,7 @@ public:
     static StringConfigItem& getPassword() { static StringConfigItem mqtt_password("mqtt_password", 25, ""); return mqtt_password; }
     static StringConfigItem& getSerialNumber() { static StringConfigItem mqtt_serialnumber("mqtt_serialnumber", 25, ""); return mqtt_serialnumber; }
 
+    void setStateChangedCallback(std::function<void(MQTTBroker *)> callback);
     bool init(const String& id);
     void connect();
     void checkConnection();
@@ -50,6 +51,8 @@ private:
     uint32_t lastReconnect = 0;
 
     espMqttClientSecure client;
+
+    std::function<void(MQTTBroker*)> stateChangedCallback = [](MQTTBroker*) {};
 
     static std::map<int, std::string> CURRENT_STAGE_IDS;
     static std::map<uint64_t, std::string> HMS_ERRORS;
