@@ -26,7 +26,7 @@ std::map<MQTTBroker::State, std::string> MQTTHABroker::PRINTER_STATES = {
     {MQTTBroker::warning, "warning"}
 };
 
-char *MQTTHABroker::effectNames[] = {
+const char *MQTTHABroker::effectNames[] = {
     "White",
     "Reactive",
     0
@@ -139,8 +139,8 @@ void MQTTHABroker::onPrinterStateChanged(MQTTBroker* printerBroker) {
     if (client.connected()) {
         JsonDocument state;
         state["light"] = printerBroker->isLightOn() ? "ON" : "OFF";
-        state["door_open"] = printerBroker->isDoorOpen() ? "true" : "false";
-        state["connected"] = printerBroker->isConnected() ? "true" : "false";
+        state["door"] = printerBroker->isDoorOpen() ? "ON" : "OFF";
+        state["connection"] = printerBroker->isConnected() ? "ON" : "OFF";
         state["state"] = PRINTER_STATES[printerBroker->getState()];
 
         char buffer[256];
@@ -287,6 +287,74 @@ void MQTTHABroker::sendHADiscoveryMessage() {
     doc["command_topic"] = chamberLightCommandTopic;
     doc["avty_t"] = availabilityTopic;
     doc["state_value_template"] = "{{value_json.light}}";
+    doc["device"]["configuration_url"] = "http://" + WiFi.localIP().toString() + "/";
+    doc["device"]["name"] = manifest[3];
+    doc["device"]["identifiers"][0] = WiFi.macAddress();
+    doc["device"]["model"] = manifest[0];
+    doc["device"]["sw_version"] = manifest[1];
+
+    n = serializeJson(doc, buffer);
+
+    client.publish(discoveryTopic, 2, false, buffer);
+
+    sprintf(discoveryTopic, "homeassistant/sensor/%s/printer_state/config", id.c_str());
+
+    doc.clear();
+
+    doc["name"] = "Printer State";
+    doc["icon"] = "mdi:gear";
+    doc["unique_id"] = "printer_state" + id;
+    doc["state_topic"] = printerStateTopic;
+    doc["device_class"] = "enum";
+    JsonArray optArray = doc["options"].to<JsonArray>();
+    for (const auto& pair : MQTTHABroker::PRINTER_STATES) {
+        optArray.add(pair.second.c_str());
+    }
+    doc["avty_t"] = availabilityTopic;
+    doc["value_template"] = "{{value_json.state}}";
+    doc["device"]["configuration_url"] = "http://" + WiFi.localIP().toString() + "/";
+    doc["device"]["name"] = manifest[3];
+    doc["device"]["identifiers"][0] = WiFi.macAddress();
+    doc["device"]["model"] = manifest[0];
+    doc["device"]["sw_version"] = manifest[1];
+
+    n = serializeJson(doc, buffer);
+
+    client.publish(discoveryTopic, 2, false, buffer);
+
+    client.publish(availabilityTopic, 2, true, "online");
+
+    sprintf(discoveryTopic, "homeassistant/binary_sensor/%s/door/config", id.c_str());
+
+    doc.clear();
+
+    doc["name"] = "Door";
+    doc["icon"] = "mdi:door";
+    doc["unique_id"] = "door" + id;
+    doc["state_topic"] = printerStateTopic;
+    doc["device_class"] = "door";
+    doc["avty_t"] = availabilityTopic;
+    doc["value_template"] = "{{value_json.door}}";
+    doc["device"]["configuration_url"] = "http://" + WiFi.localIP().toString() + "/";
+    doc["device"]["name"] = manifest[3];
+    doc["device"]["identifiers"][0] = WiFi.macAddress();
+    doc["device"]["model"] = manifest[0];
+    doc["device"]["sw_version"] = manifest[1];
+
+    n = serializeJson(doc, buffer);
+
+    client.publish(discoveryTopic, 2, false, buffer);
+
+    sprintf(discoveryTopic, "homeassistant/binary_sensor/%s/connection/config", id.c_str());
+
+    doc.clear();
+
+    doc["name"] = "Connection";
+    doc["unique_id"] = "connection" + id;
+    doc["state_topic"] = printerStateTopic;
+    doc["device_class"] = "connectivity";
+    doc["avty_t"] = availabilityTopic;
+    doc["value_template"] = "{{value_json.connection}}";
     doc["device"]["configuration_url"] = "http://" + WiFi.localIP().toString() + "/";
     doc["device"]["name"] = manifest[3];
     doc["device"]["identifiers"][0] = WiFi.macAddress();

@@ -49,7 +49,7 @@ private:
     char effectStateTopic[64];
     char effectCommandTopic[64];
     char printerStateTopic[64];
-    static char* effectNames[];
+    static const char* effectNames[];
 
     bool connected = false;
     bool reconnect = false;
