@@ -32,7 +32,7 @@ const char *manifest[]{
     // Firmware name
     "Bambu Lighting",
     // Firmware version
-    "0.4.3",
+    "0.4.4",
     // Hardware chip/variant
     "ESP32",
     // Device name
@@ -254,6 +254,7 @@ void ledTaskFn(void *pArg) {
 					break;
 			}
 
+			prevLightsState = lightsState;
 			doorWasOpen = mqttBroker.isDoorOpen();
 
 			boolean chamberLightIsOn = mqttBroker.isLightOn();

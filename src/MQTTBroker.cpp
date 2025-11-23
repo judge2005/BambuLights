@@ -277,7 +277,10 @@ void MQTTBroker::handleMQTTMessage(JsonDocument &jsonMsg) {
     if (printValues) {
         if (printValues.containsKey("home_flag")) {
             bool oldDoorOpen = doorOpen;
-            doorOpen = (printValues["home_flag"].as<uint32_t>() & 0x00800000) != 0;
+            // "home_flag" value is a signed 32 bit int as a string. .as<uint32_t>() will fail if
+            // the high bit is set, so we use as<int32_t>() first then cast to uint32_t.
+            uint32_t payload = printValues["home_flag"].as<int32_t>();
+            doorOpen = (payload & 0x00800000) != 0;
             stateChanged = stateChanged || (oldDoorOpen != doorOpen);
         }
 
@@ -315,8 +318,10 @@ void MQTTBroker::handleMQTTMessage(JsonDocument &jsonMsg) {
                 State oldState = state;
                 state = error;
                 for (int i=0; i<hmsArray.size(); i++) {
-                    uint64_t attr = hmsArray[i]["attr"].as<uint64_t>(); 
-                    uint64_t code = hmsArray[i]["code"].as<uint64_t>();
+                    // Bear in mind that the JSON values are signed integers as strings. So we have to convert
+                    // them as int64_t first then cast them to uint64_t.
+                    uint64_t attr = hmsArray[i]["attr"].as<int64_t>(); 
+                    uint64_t code = hmsArray[i]["code"].as<int64_t>();
                     int level = code >> 16;
                     uint64_t value = (attr << 32) | code;
                     Serial.print("HMS value=");Serial.println(HMS_ERRORS[value].c_str());
@@ -336,7 +341,7 @@ void MQTTBroker::handleMQTTMessage(JsonDocument &jsonMsg) {
         }
 
         if (printValues.containsKey("print_error")) {
-            int printError = printValues["print_error"].as<uint32_t>();
+            int printError = printValues["print_error"].as<int32_t>();
             if (printError > 0) {
                 State oldState = state;
                 state = error;

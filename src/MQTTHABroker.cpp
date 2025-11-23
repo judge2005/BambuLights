@@ -302,7 +302,7 @@ void MQTTHABroker::sendHADiscoveryMessage() {
     doc.clear();
 
     doc["name"] = "Printer State";
-    doc["icon"] = "mdi:gear";
+    doc["icon"] = "mdi:cloud_print";
     doc["unique_id"] = "printer_state" + id;
     doc["state_topic"] = printerStateTopic;
     doc["device_class"] = "enum";
@@ -329,7 +329,6 @@ void MQTTHABroker::sendHADiscoveryMessage() {
     doc.clear();
 
     doc["name"] = "Door";
-    doc["icon"] = "mdi:door";
     doc["unique_id"] = "door" + id;
     doc["state_topic"] = printerStateTopic;
     doc["device_class"] = "door";
