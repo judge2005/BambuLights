@@ -2,6 +2,7 @@
 // #include <Uptime.h>
 #include <ArduinoJson.h>
 #include <AsyncWebSocket.h>
+#include <WiFi.h>
 extern "C" {
 #include "esp_ota_ops.h"
 #include "esp_image_format.h"

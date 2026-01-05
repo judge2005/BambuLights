@@ -1,5 +1,8 @@
 #include <Arduino.h>
 #include <freertos/task.h>
+#if ESP_ARDUINO_VERSION_MAJOR >= 3
+#include "esp_mac.h"
+#endif
 #include <esp_wifi.h>
 #include <ArduinoJson.h>
 #include <SPI.h>
@@ -32,11 +35,24 @@ const char *manifest[]{
     // Firmware name
     "Bambu Lighting",
     // Firmware version
-    "0.4.4",
+    "0.4.5",
     // Hardware chip/variant
+#if defined(CONFIG_IDF_TARGET_ESP32)
     "ESP32",
+#elif defined(CONFIG_IDF_TARGET_ESP32S3)
+	"ESP32-S3",
+#elif defined(CONFIG_IDF_TARGET_ESP32S2)
+	"ESP32-S2",
+#elif defined(CONFIG_IDF_TARGET_ESP32C3)
+	"ESP32-C3",
+#elif defined(CONFIG_IDF_TARGET_ESP32C6)
+	"ESP32-C6",
+#else
+	"Unknown",
+#endif
     // Device name
-    "Bambu"};
+    "Bambu"
+};
 
 StringConfigItem hostName("hostname", 63, "bambulights");
 AsyncWebServer server(80);
@@ -102,10 +118,10 @@ String getChipId(void)
 {
 	uint8_t macid[6];
 
-  esp_efuse_mac_get_default(macid);
-  String chipId = String((uint32_t)(macid[5] + (((uint32_t)(macid[4])) << 8) + (((uint32_t)(macid[3])) << 16)), HEX);
-  chipId.toUpperCase();
-  return chipId;
+	esp_efuse_mac_get_default(macid);
+	String chipId = String((uint32_t)(macid[5] + (((uint32_t)(macid[4])) << 8) + (((uint32_t)(macid[3])) << 16)), HEX);
+	chipId.toUpperCase();
+	return chipId;
 }
 
 String chipId = getChipId();
@@ -280,6 +296,7 @@ void ledTaskFn(void *pArg) {
 		bambuLights->setState(lightsState);
 
 		bambuLights->loop();
+
 		delay(16);
 	}
 }
@@ -574,7 +591,7 @@ void setup()
 
 	LittleFS.begin();
 
-	bambuLights = new BambuLights(27);
+	bambuLights = new BambuLights(LED_PIN);
 
   xTaskCreatePinnedToCore(
     commitEEPROMTaskFn,   /* Function to implement the task */
@@ -604,7 +621,7 @@ void setup()
 		&improvTask,  /* Task handle. */
 		0
 	);
-
+	
   wifiManager.setDebugOutput(true);
   wifiManager.setHostname(hostName.value.c_str()); // name router associates DNS entry with
   wifiManager.setCustomOptionsHTML("<br><form action='/t' name='time_form' method='post'><button name='time' onClick=\"{var now=new Date();this.value=now.getFullYear()+','+(now.getMonth()+1)+','+now.getDate()+','+now.getHours()+','+now.getMinutes()+','+now.getSeconds();} return true;\">Set Clock Time</button></form><br><form action=\"/app.html\" method=\"get\"><button>Configure Clock</button></form>");
