@@ -376,7 +376,7 @@ void broadcastUpdate(String originalKey, String& originalValue) {
 	value[originalKey] = serialized(originalValue.c_str());
 
 	size_t len = measureJson(root);
-	AsyncWebSocketMessageBuffer * buffer = ws.makeBuffer(len); //  creates a buffer (len + 1) for you.
+	AsyncWebSocketMessageBuffer * buffer = ws.makeBuffer(len + 1);
 	if (buffer) {
 		serializeJson(root, (char *)buffer->get(), len + 1);
 		ws.textAll(buffer);
@@ -609,7 +609,11 @@ void setup()
 		NULL,  /* Task input parameter */
 		tskIDLE_PRIORITY + 2,  /* Priority of the task (idle) */
 		&ledTask,  /* Task handle. */
-		1	/*  */
+#if portNUM_PROCESSORS > 1
+		1
+#else
+		0
+#endif
 	);
 
   xTaskCreatePinnedToCore(
