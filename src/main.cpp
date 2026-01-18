@@ -376,9 +376,9 @@ void broadcastUpdate(String originalKey, String& originalValue) {
 	value[originalKey] = serialized(originalValue.c_str());
 
 	size_t len = measureJson(root);
-	AsyncWebSocketMessageBuffer * buffer = ws.makeBuffer(len + 1);
+	AsyncWebSocketMessageBuffer * buffer = ws.makeBuffer(len);
 	if (buffer) {
-		serializeJson(root, (char *)buffer->get(), len + 1);
+		serializeJson(root, (char *)buffer->get(), len);
 		ws.textAll(buffer);
 	}
 
