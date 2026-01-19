@@ -1,0 +1,15 @@
+{
+    "name": "Bambu Lighting",
+    "version": "$version$",
+    "new_install_prompt_erase": true,
+    "new_install_improv_wait_time": 30,
+    "builds": [
+      {
+        "chipFamily": "ESP32-C3",
+        "improv": false,
+        "parts": [
+          { "path": "bl_firmware_merged_c3.bin", "offset": 0 }
+        ]
+      }
+    ]
+  }

@@ -21,10 +21,20 @@ var wssConn;
 
 app.use(function(req, res, next) {
     console.log(req.originalUrl);
+    // Add CORS headers
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
     next();
 });
 
 app.use(expressStaticGzip("src"));
+
+// Serve files from current directory (web/)
+app.use(express.static("."));
+
+// Serve releases directory for manifest files
+app.use("/releases", express.static("../releases"));
 
 var pages = {
 		"type":"sv.init.menu",
