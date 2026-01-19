@@ -26,7 +26,13 @@ addressable LEDs so I developed this project to do the same thing, but for 5V WS
 ![Lights in action](docs/IMG_0339.jpg)
 # Software
 This project uses PlatformIO IDE. It is easy to build and upload to the hardware if you have PlatformIO installed. Just
-check out the repo and open it in PlatformIO. There are two artifacts:
+check out the repo and open it in PlatformIO. There are builds for three modules:
+
+- ESP32 PICO D4 - this should work on any other 'original' ESP32 module such as the WROOM. This build uses pin 27 for the LED connection by default
+- ESP32-S3 - this uses pin 16 by default
+- ESP32-C3 - this uses pin 3 by default
+
+There are two artifacts:
 - firmware.bin - the firmware!
 - littlefs.bin - the GUI
 
