@@ -30,9 +30,21 @@ def copy_firmware_to_release(*args, **kwargs):
     with open(manifest_path, 'r') as file:
         manifest = json.load(file)
 
-    # firmware
+    # merged firmware
     src = os.path.join(env["PROJECT_DIR"], env.GetBuildPath("$BUILD_DIR"), env.GetBuildPath("${PROGNAME}_merged.bin"))
     dst = os.path.join(env["PROJECT_DIR"], 'releases', manifest["builds"][0]["parts"][0]["path"])
+    print(src + " " + dst)
+    shutil.copy(src, dst)
+
+    # firmware
+    src = os.path.join(env["PROJECT_DIR"], env.GetBuildPath("$BUILD_DIR"), env.GetBuildPath("${PROGNAME}.bin"))
+    dst = os.path.join(env["PROJECT_DIR"], 'releases', manifest["builds"][0]["parts"][0]["path"].replace("_merged", ""))
+    print(src + " " + dst)
+    shutil.copy(src, dst)
+
+    # filesystem
+    src = os.path.join(env["PROJECT_DIR"], env.GetBuildPath("$BUILD_DIR"), env.GetBuildPath("${ESP32_FS_IMAGE_NAME}.bin"))
+    dst = os.path.join(env["PROJECT_DIR"], 'releases', "bl_littlefs.bin")
     print(src + " " + dst)
     shutil.copy(src, dst)
 
