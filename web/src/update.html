@@ -22,7 +22,101 @@ $(document).on("mobileinit", function () {
 	<!-- build:css script.css -->
 	<link rel="stylesheet" href="/jquery/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
 	<link href="/jquery/jquery.roundslider/1.3/roundslider.min.css" rel="stylesheet" />
+	<link href="/theme.css" rel="stylesheet" />
 	<!-- endbuild -->
+
+	<style type="text/css">
+		html body {
+			min-height: 100vh;
+			margin: 0;
+			display: flex;
+			align-items: flex-start;
+			justify-content: center;
+		}
+
+		html body form {
+			width: min(480px, calc(100% - 32px));
+			margin: 24px 16px;
+			padding: 18px;
+			box-sizing: border-box;
+			background: var(--surface);
+			border: 1px solid var(--line);
+			border-radius: var(--radius);
+			box-shadow: var(--shadow);
+		}
+
+		input[type="file"] {
+			width: 100%;
+			box-sizing: border-box;
+			margin-bottom: 12px;
+			padding: 8px;
+			background: var(--field);
+			border: 1px solid var(--line);
+			border-radius: 10px;
+			color: var(--text);
+			font-family: var(--font);
+			font-size: 1em;
+			line-height: 1.3;
+		}
+
+		input[type="file"]::file-selector-button,
+		input[type="file"]::-webkit-file-upload-button {
+			margin-right: 10px;
+			padding: .55em .9em;
+			background: var(--accent-fill);
+			border: 1px solid transparent;
+			border-radius: 10px;
+			color: var(--on-accent) !important;
+			-webkit-text-fill-color: var(--on-accent);
+			box-shadow: var(--glow);
+			font-family: var(--font);
+			font-size: 1em;
+			line-height: 1.3;
+			font-weight: 650;
+			text-shadow: none !important;
+			cursor: pointer;
+		}
+
+		input[type="file"]::file-selector-button:hover,
+		input[type="file"]::-webkit-file-upload-button:hover {
+			background: var(--accent-fill);
+			border-color: transparent;
+			color: var(--on-accent) !important;
+			-webkit-text-fill-color: var(--on-accent);
+			filter: brightness(1.08);
+		}
+
+		html body form .ui-input-btn,
+		html body form input[type="submit"] {
+			width: 100%;
+			box-sizing: border-box;
+			background: var(--accent-fill) !important;
+			border: 1px solid transparent !important;
+			border-radius: 12px !important;
+			color: var(--on-accent) !important;
+			-webkit-text-fill-color: var(--on-accent);
+			box-shadow: var(--glow) !important;
+			font-family: var(--font);
+			font-size: 1em;
+			line-height: 1.3;
+			font-weight: 650;
+			text-shadow: none !important;
+		}
+
+		html body form .ui-input-btn input[type="submit"] {
+			width: 100%;
+			background: transparent !important;
+			border: 0 !important;
+			color: var(--on-accent) !important;
+			-webkit-text-fill-color: var(--on-accent);
+			font-family: var(--font);
+			font-size: 1em;
+			line-height: 1.3;
+			font-weight: 650;
+			text-shadow: none !important;
+			box-shadow: none !important;
+		}
+	</style>
 
 	<link rel="shortcut icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABFFBMVEUAAACSkpIxMTEKCgo/Pz9YWFgMDAwMDAwPDw8gICAqKipqamqSkpJ1dXUICAgGBgYQEBAEBAQNDQ0LCwsPDw8REREKCgoODg4TExMPDw8PDw8TExMdHR0SEhIVFRUiIiISEhISEhI5OTlHR0cXFxcbGxsXFxcbGxsbGxs2NjYfHx8pKSkwMDAzMzNKSkouLi5NTU1ZWVkqKipdXV1OTk5BQUEREREHBwcJCQkLCwscHBwVFRUrKyshISE4ODgUFBQgICAWFhYbGxsbGxsSEhIlJSUqKipNTU0WFhZbW1tSUlIiIiIbGxs7Ozs9PT1bW1sfHx8yMjJvb282NjZRUVEmJiZWVlZCQkJnZ2fw8PAAAAAKCgo+WiZ7AAAAWnRSTlMABDHtGgno2sdeQSEJBvn59vbx5OPa1MG/vrGuq6qmnZeQi4F9e3FuaGBaTko9OicjIB8ZEg3p59vLyb27t6mfl5GLhXZ0cGxqZmZkWFZQTko2LCooKBwUEATs1IN1AAAA/0lEQVQ4y4WQRXIDQRAEexakRTFLFjOjmZkZy///hxXhmzXTzksdMk9Ff5jMXFIiXNfr1B7o/VVIdV0HAlZvOwvsyIJi2nYO8UvIW/VaStBj/qKWgx75znytBk6FzvbM6vA4ON6MkAS/JO53x9XurVkGNFlhdO7E0CC6tBCekpp5cgDdZgL7JheaHZwIZVBqIE6kFfaf5b6fDCK2XG9Ccq6uY9CJJYCt/4IK6z+BJzZoI8v6j43oiPNmOtrj/NRKaYwWzUTTZ/woU18Qw1veIJbCnPeLRHnABkUAa6bavwBYFuqgAawDUL9wBLRbcZwqgxaCPonuuTIwwg7x9EnOD7yqJHNnrSJeAAAAAElFTkSuQmCC" />
 </head>

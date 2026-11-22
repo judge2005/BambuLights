@@ -42,7 +42,7 @@
 					</div>
 					<div class="dispInline">
 						<select onchange="elementChange(this)" type="picklist"
-							id="led_type" data-mini="true">
+							id="led_type" data-mini="true" data-native-menu="false">
 							<option value="0">GRB</option>
 							<option value="1">RGB</option>
 						</select>
@@ -61,7 +61,7 @@
 							<label for="noWiFi-pattern">Pattern</label>
 						</div>
 						<div class="dispInline">
-							<select onchange="setVisibility('noWiFi-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="noWiFi-pattern" data-mini="true">
+							<select onchange="setVisibility('noWiFi-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="noWiFi-pattern" data-mini="true" data-native-menu="false">
 								<option value="0">Constant</option>
 								<option value="1">Pulse</option>
 							</select>
@@ -69,7 +69,7 @@
 						<div id="noWiFi-bpm_container" style="display: none;">
 							<div class="clearFloats"></div>
 							<label for="noWiFi-pulse_per_min">Cycles per Minute</label>
-							<input onchange="elementChange(this)" type="range" name="noWiFi-pulse_per_min" id="noWiFi-pulse_per_min" min="1" max="20" value="20">
+							<input onchange="elementChange(this)" type="range" data-highlight="true" name="noWiFi-pulse_per_min" id="noWiFi-pulse_per_min" min="1" max="20" value="20">
 						</div>
 						<div class="clearFloats"></div>
 						<div class="dispInlineLabel">
@@ -85,7 +85,7 @@
 							<label for="noPrinterConnected-pattern">Pattern</label>
 						</div>
 						<div class="dispInline">
-							<select onchange="setVisibility('noPrinterConnected-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="noPrinterConnected-pattern" data-mini="true">
+							<select onchange="setVisibility('noPrinterConnected-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="noPrinterConnected-pattern" data-mini="true" data-native-menu="false">
 								<option value="0">Constant</option>
 								<option value="1">Pulse</option>
 							</select>
@@ -93,7 +93,7 @@
 						<div id="noPrinterConnected-bpm_container" style="display: none;">
 							<div class="clearFloats"></div>
 							<label for="noPrinterConnected-pulse_per_min">Cycles per Minute</label>
-							<input onchange="elementChange(this)" type="range" name="noPrinterConnected-pulse_per_min" id="noPrinterConnected-pulse_per_min" min="1" max="20" value="20">
+							<input onchange="elementChange(this)" type="range" data-highlight="true" name="noPrinterConnected-pulse_per_min" id="noPrinterConnected-pulse_per_min" min="1" max="20" value="20">
 						</div>
 						<div class="clearFloats"></div>
 						<div class="dispInlineLabel">
@@ -117,7 +117,7 @@
 						<div id="printerConnected-bpm_container" style="display: none;">
 							<div class="clearFloats"></div>
 							<label for="printerConnected-pulse_per_min">Cycles per Minute</label>
-							<input onchange="elementChange(this)" type="range" name="printerConnected-pulse_per_min" id="printerConnected-pulse_per_min" min="1" max="20" value="20">
+							<input onchange="elementChange(this)" type="range" data-highlight="true" name="printerConnected-pulse_per_min" id="printerConnected-pulse_per_min" min="1" max="20" value="20">
 						</div>
 						<div class="clearFloats"></div>
 						<div class="dispInlineLabel">
@@ -133,7 +133,7 @@
 							<label for="printing-pattern">Pattern</label>
 						</div>
 						<div class="dispInline">
-							<select onchange="setVisibility('printing-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="printing-pattern" data-mini="true">
+							<select onchange="setVisibility('printing-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="printing-pattern" data-mini="true" data-native-menu="false">
 								<option value="0">Constant</option>
 								<option value="1">Pulse</option>
 							</select>
@@ -141,7 +141,7 @@
 						<div id="printing-bpm_container" style="display: none;">
 							<div class="clearFloats"></div>
 							<label for="printing-pulse_per_min">Cycles per Minute</label>
-							<input onchange="elementChange(this)" type="range" name="printing-pulse_per_min" id="printing-pulse_per_min" min="1" max="20" value="20">
+							<input onchange="elementChange(this)" type="range" data-highlight="true" name="printing-pulse_per_min" id="printing-pulse_per_min" min="1" max="20" value="20">
 						</div>
 						<div class="clearFloats"></div>
 						<div class="dispInlineLabel">
@@ -154,13 +154,13 @@
 					<fieldset id="finished-colors" data-collapsed="true" data-role="collapsible" data-iconpos="right" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
 						<legend>Finished</legend>
 							<label for="finished-timeout">Timeout (mins)</label>
-							<input onchange="elementChange(this)" type="range" name="finished-timeout" id="finished-timeout" min="0" max="120" value="20">
+							<input onchange="elementChange(this)" type="range" data-highlight="true" name="finished-timeout" id="finished-timeout" min="0" max="120" value="20">
 						<div class="clearFloats"></div>
 						<div class="dispInlineLabel">
 							<label for="finished-pattern">Pattern</label>
 						</div>
 						<div class="dispInline">
-							<select onchange="setVisibility('finished-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="finished-pattern" data-mini="true">
+							<select onchange="setVisibility('finished-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="finished-pattern" data-mini="true" data-native-menu="false">
 								<option value="0">Constant</option>
 								<option value="1">Pulse</option>
 							</select>
@@ -168,7 +168,7 @@
 						<div id="finished-bpm_container" style="display: none;">
 							<div class="clearFloats"></div>
 							<label for="finished-pulse_per_min">Cycles per Minute</label>
-							<input onchange="elementChange(this)" type="range" name="finished-pulse_per_min" id="finished-pulse_per_min" min="1" max="20" value="20">
+							<input onchange="elementChange(this)" type="range" data-highlight="true" name="finished-pulse_per_min" id="finished-pulse_per_min" min="1" max="20" value="20">
 						</div>
 						<div class="clearFloats"></div>
 						<div class="dispInlineLabel">
@@ -184,7 +184,7 @@
 							<label for="warning-pattern">Pattern</label>
 						</div>
 						<div class="dispInline">
-							<select onchange="setVisibility('warning-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="warning-pattern" data-mini="true">
+							<select onchange="setVisibility('warning-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="warning-pattern" data-mini="true" data-native-menu="false">
 								<option value="0">Constant</option>
 								<option value="1">Pulse</option>
 							</select>
@@ -192,7 +192,7 @@
 						<div id="warning-bpm_container" style="display: none;">
 							<div class="clearFloats"></div>
 							<label for="warning-pulse_per_min">Cycles per Minute</label>
-							<input onchange="elementChange(this)" type="range" name="warning-pulse_per_min" id="warning-pulse_per_min" min="1" max="20" value="20">
+							<input onchange="elementChange(this)" type="range" data-highlight="true" name="warning-pulse_per_min" id="warning-pulse_per_min" min="1" max="20" value="20">
 						</div>
 						<div class="clearFloats"></div>
 						<div class="dispInlineLabel">
@@ -208,7 +208,7 @@
 							<label for="error-pattern">Pattern</label>
 						</div>
 						<div class="dispInline">
-							<select onchange="setVisibility('error-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="error-pattern" data-mini="true">
+							<select onchange="setVisibility('error-bpm_container', this, ['1']);elementChange(this)"  type="picklist" id="error-pattern" data-mini="true" data-native-menu="false">
 								<option value="0">Constant</option>
 								<option value="1">Pulse</option>
 							</select>
@@ -216,7 +216,7 @@
 						<div id="error-bpm_container" style="display: none;">
 							<div class="clearFloats"></div>
 							<label for="error-pulse_per_min">Cycles per Minute</label>
-							<input onchange="elementChange(this)" type="range" name="error-pulse_per_min" id="error-pulse_per_min" min="1" max="20" value="20">
+							<input onchange="elementChange(this)" type="range" data-highlight="true" name="error-pulse_per_min" id="error-pulse_per_min" min="1" max="20" value="20">
 						</div>
 						<div class="clearFloats"></div>
 						<div class="dispInlineLabel">
